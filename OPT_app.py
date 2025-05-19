@@ -1,32 +1,40 @@
 import streamlit as st
 
-# Table data
+# Set page config
+st.set_page_config(page_title="Orbit PT Pro Pricing Calculator", layout="wide")
+st.title("🚜 Orbit PT Pro Quotation Calculator")
+
+# Items and pricing list
 items = [
     {"name": "12 HP PT Pro incl Dead Weight", "price": 168000},
     {"name": "Battery Sets", "price": 67200},
     {"name": "Fast Chargers", "price": 6720},
-    {"name": "1 Set of Sugarcane Blades (Weeding) incl. Extended Shaft", "price": 5040},
-    {"name": "1 Set of Sugarcane Blades (Earthing-up) incl. Extended Shaft", "price": 5040},
+    {"name": "1 Set of Sugarcane Blades(Weeding) including Extended Shaft", "price": 5040},
+    {"name": "1 Set of Sugarcane Blades(Earthing-up) including Extended Shaft", "price": 5040},
     {"name": "1 Set of Tyres (5x10)", "price": 8400},
     {"name": "Toolkit: Spanner, Gloves, Gum Boots", "price": 1680},
     {"name": "Ginger Kit", "price": 11200},
     {"name": "Seat", "price": 7840},
-    {"name": "BuyBack Guarantee", "price": 10000},
-    {"name": "Jack", "price": 1680}
+    {"name": "Jack", "price": 1680},
+    {"name": "BuyBack Guarantee", "price": 8929},
 ]
 
-st.title("🌾 Orbit Agritech Equipment Calculator")
+discount_levels = {
+    "L1": {"single": 100000, "double": 130000, "three": 160000},
+    "L2": {"single": 110000, "double": 140000, "three": 170000},
+    "L3": {"single": 120000, "double": 150000, "three": 180000},
+    "L4 (Founder)": {"single": 135000, "double": 165000, "three": 195000}
+}
 
-st.write("### Select items and enter quantity:")
-
-selected_items = []
+st.write("---")
 total_price = 0
+selected_items = []
 
 for item in items:
     col1, col2 = st.columns([2, 1])
     with col1:
-        checked = st.checkbox(item["name"])
-    
+        checked = st.checkbox(item["name"], help="MRP: ₹10,000 | You Save: 12%" if item["name"] == "BuyBack Guarantee" else None)
+
     if checked:
         # Set custom minimum quantity for specific items
         min_qty = 1
@@ -47,7 +55,7 @@ for item in items:
                 value=default_qty,
                 key=item["name"]
             )
-        
+
         item_total = qty * item["price"]
         total_price += item_total
         selected_items.append({
@@ -57,47 +65,54 @@ for item in items:
             "total": item_total
         })
 
+# Detect battery quantity
+battery_qty = 0
+for item in selected_items:
+    if item["name"] == "Battery Sets":
+        battery_qty = item["qty"]
+        break
 
+# Discount selection
 st.markdown("---")
-st.write("### Apply Discount")
+st.write("### Select Discount Level")
+selected_level = st.radio(
+    "Choose one of the levels based on offer type:",
+    list(discount_levels.keys())
+)
 
-discount_input = st.text_input("Enter discount (e.g. `10%` or `5000`):")
+discount_type = "single"
+if battery_qty == 1:
+    discount_type = "single"
+elif battery_qty == 2:
+    discount_type = "double"
+elif battery_qty >= 3:
+    discount_type = "three"
 
-# Discount logic with cap
-discount_value = 0
-MAX_DISCOUNT = 168000
+discount_value = discount_levels[selected_level][discount_type]
+if battery_qty >= 3:
+    discount_value += 30000
 
-if discount_input:
-    discount_input = discount_input.strip()
-    try:
-        if discount_input.endswith('%'):
-            discount_percent = float(discount_input[:-1])
-            discount_value = (discount_percent / 100) * total_price
-        else:
-            discount_value = float(discount_input)
-    except:
-        st.warning("Invalid discount input. Use like `10%` or `5000`.")
-
-    if discount_value > MAX_DISCOUNT:
-        st.warning(f"Discount capped at ₹{MAX_DISCOUNT:,.0f} or 49% max")
-        discount_value = MAX_DISCOUNT
+MAX_DISCOUNT = 150000
+if discount_value > MAX_DISCOUNT:
+    st.warning(f"Discount capped at ₹{MAX_DISCOUNT:,.0f}")
+    discount_value = MAX_DISCOUNT
 
 final_price = total_price - discount_value
 
-# ✅ Final Summary Display
+# Summary
 st.markdown("---")
 st.write("### 🧾 Bill Summary")
-
 if selected_items:
     st.write("**Selected Items:**")
     for i in selected_items:
         st.write(f"- {i['name']} (x{i['qty']})")
 
     st.write(f"**Subtotal:** ₹{total_price:,.0f}")
-    st.write(f"**Discount:** ₹{discount_value:,.0f}")
+    st.write(f"**Discount ({selected_level}):** ₹{discount_value:,.0f}")
     st.write(f"**Final Price (After Discount):** ₹{final_price:,.0f}")
 else:
     st.info("Please select items to see the bill.")
+
 
 import pandas as pd
 import io
