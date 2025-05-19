@@ -39,7 +39,7 @@ discount_input = st.text_input("Enter discount (e.g. `10%` or `5000`):")
 
 # Discount logic with cap
 discount_value = 0
-MAX_DISCOUNT = 150000
+MAX_DISCOUNT = 130000
 
 if discount_input:
     discount_input = discount_input.strip()
