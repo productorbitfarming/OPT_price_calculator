@@ -11,6 +11,7 @@ items = [
     {"name": "Toolkit: Spanner, Gloves, Gum Boots", "price": 1680},
     {"name": "Ginger Kit", "price": 11200},
     {"name": "Seat", "price": 7840},
+    {"name": "BuyBack Guarantee", "price": 10000},
     {"name": "Jack", "price": 1680}
 ]
 
