@@ -25,12 +25,37 @@ for item in items:
     col1, col2 = st.columns([2, 1])
     with col1:
         checked = st.checkbox(item["name"])
+    
     if checked:
+        # Set custom minimum quantity for specific items
+        min_qty = 1
+        default_qty = 1
+
+        if item["name"] == "Fast Chargers":
+            min_qty = 2
+            default_qty = 2
+        elif item["name"] == "12 HP PT Pro incl Dead Weight":
+            min_qty = 1
+            default_qty = 1
+
         with col2:
-            qty = st.number_input(f"Qty - {item['name']}", min_value=1, step=1, value=1, key=item["name"])
+            qty = st.number_input(
+                f"Qty - {item['name']}",
+                min_value=min_qty,
+                step=1,
+                value=default_qty,
+                key=item["name"]
+            )
+        
         item_total = qty * item["price"]
         total_price += item_total
-        selected_items.append({"name": item["name"], "qty": qty, "unit_price": item["price"], "total": item_total})
+        selected_items.append({
+            "name": item["name"],
+            "qty": qty,
+            "unit_price": item["price"],
+            "total": item_total
+        })
+
 
 st.markdown("---")
 st.write("### Apply Discount")
