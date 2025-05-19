@@ -16,14 +16,14 @@ items = [
     {"name": "Ginger Kit", "price": 11200},
     {"name": "Seat", "price": 7840},
     {"name": "Jack", "price": 1680},
-    {"name": "BuyBack Guarantee", "price": 10000},
+    {"name": "BuyBack Guarantee", "price": 8929},
 ]
 
 # Discount levels by battery quantity
 battery_discount_map = {
-    1: {"L1": 100000, "L2": 110000, "L3": 120000, "L4 (Founder)": 135000},
-    2: {"L1": 130000, "L2": 140000, "L3": 150000, "L4 (Founder)": 165000},
-    3: {"L1": 160000, "L2": 170000, "L3": 180000, "L4 (Founder)": 195000},
+    1: [100000, 110000, 120000, 135000],
+    2: [130000, 140000, 150000, 165000],
+    3: [160000, 170000, 180000, 195000],
 }
 
 st.write("---")
@@ -82,22 +82,17 @@ elif battery_qty == 2:
 elif battery_qty == 1:
     applicable_discounts = battery_discount_map[1]
 else:
-    applicable_discounts = {}
+    applicable_discounts = []
 
-selected_level = None
+selected_discount = 0
 if applicable_discounts:
     cols = st.columns(len(applicable_discounts))
-    for idx, (level, value) in enumerate(applicable_discounts.items()):
-        if cols[idx].button(f"{level}\n₹{value:,.0f}"):
-            selected_level = level
-    if selected_level:
-        discount_value = applicable_discounts[selected_level]
-    else:
-        discount_value = 0
-else:
-    discount_value = 0
+    for i, val in enumerate(applicable_discounts):
+        with cols[i]:
+            if st.button(f"₹{val:,.0f}", key=f"discount_{val}"):
+                selected_discount = val
 
-final_price = total_price - discount_value
+final_price = total_price - selected_discount
 
 # Summary
 st.markdown("---")
@@ -108,14 +103,10 @@ if selected_items:
         st.write(f"- {i['name']} (x{i['qty']})")
 
     st.write(f"**Subtotal:** ₹{total_price:,.0f}")
-    if selected_level:
-        st.write(f"**Discount ({selected_level}):** ₹{discount_value:,.0f}")
-    else:
-        st.write("**Discount:** ₹0")
+    st.write(f"**Discount:** ₹{selected_discount:,.0f}")
     st.write(f"**Final Price (After Discount):** ₹{final_price:,.0f}")
 else:
     st.info("Please select items to see the bill.")
-
 
 
 import pandas as pd
