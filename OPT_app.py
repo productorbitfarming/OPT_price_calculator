@@ -16,7 +16,7 @@ items = [
     {"name": "Ginger Kit", "price": 11200},
     {"name": "Seat", "price": 7840},
     {"name": "Jack", "price": 1680},
-    {"name": "BuyBack Guarantee", "price": 8929},
+    {"name": "BuyBack Guarantee", "price": 10000},
 ]
 
 discount_levels = {
