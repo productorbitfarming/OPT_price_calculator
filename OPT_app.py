@@ -66,3 +66,57 @@ if selected_items:
 else:
     st.info("Please select items to see the bill.")
 
+import pandas as pd
+import io
+
+if selected_items:
+    df = pd.DataFrame(selected_items)
+
+    df_summary = pd.DataFrame({
+        "Description": ["Subtotal", "Discount", "Final Price"],
+        "Amount": [total_price, discount_value, final_price]
+    })
+
+    st.markdown("### 📥 Download Your Bill")
+
+    # Combine both tables
+    combined_df = pd.concat([df, pd.DataFrame([{}]), df_summary], ignore_index=True)
+
+    # Excel download
+    excel_buffer = io.BytesIO()
+    with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
+        combined_df.to_excel(writer, index=False, sheet_name='Bill')
+    st.download_button(
+        label="Download Excel Bill",
+        data=excel_buffer,
+        file_name="Orbit_Bill.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    # PDF download (basic via HTML for now)
+    from fpdf import FPDF
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.cell(200, 10, txt="Orbit Agritech Bill Summary", ln=True, align="C")
+    pdf.ln(10)
+    for item in selected_items:
+        pdf.cell(200, 10, txt=f"{item['name']} (x{item['qty']}) = ₹{item['total']:,.0f}", ln=True)
+
+    pdf.ln(5)
+    pdf.cell(200, 10, txt=f"Subtotal: ₹{total_price:,.0f}", ln=True)
+    pdf.cell(200, 10, txt=f"Discount: ₹{discount_value:,.0f}", ln=True)
+    pdf.cell(200, 10, txt=f"Final Price: ₹{final_price:,.0f}", ln=True)
+
+    pdf_buffer = io.BytesIO()
+    pdf.output(pdf_buffer)
+    pdf_buffer.seek(0)
+
+    st.download_button(
+        label="Download PDF Bill",
+        data=pdf_buffer,
+        file_name="Orbit_Bill.pdf",
+        mime="application/pdf"
+    )
