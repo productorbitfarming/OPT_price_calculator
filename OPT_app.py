@@ -78,7 +78,7 @@ if discount_input:
         st.warning("Invalid discount input. Use like `10%` or `5000`.")
 
     if discount_value > MAX_DISCOUNT:
-        st.warning(f"Discount capped at ₹{MAX_DISCOUNT:,.0f} or 43% max")
+        st.warning(f"Discount capped at ₹{MAX_DISCOUNT:,.0f} or 49% max")
         discount_value = MAX_DISCOUNT
 
 final_price = total_price - discount_value
