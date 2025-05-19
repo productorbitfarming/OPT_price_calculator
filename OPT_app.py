@@ -19,11 +19,11 @@ items = [
     {"name": "BuyBack Guarantee", "price": 10000},
 ]
 
-discount_levels = {
-    "L1": {"single": 100000, "double": 130000, "three": 160000},
-    "L2": {"single": 110000, "double": 140000, "three": 170000},
-    "L3": {"single": 120000, "double": 150000, "three": 180000},
-    "L4 (Founder)": {"single": 135000, "double": 165000, "three": 195000}
+# Discount levels by battery quantity
+battery_discount_map = {
+    1: {"L1": 100000, "L2": 110000, "L3": 120000, "L4 (Founder)": 135000},
+    2: {"L1": 130000, "L2": 140000, "L3": 150000, "L4 (Founder)": 165000},
+    3: {"L1": 160000, "L2": 170000, "L3": 180000, "L4 (Founder)": 195000},
 }
 
 st.write("---")
@@ -36,7 +36,6 @@ for item in items:
         checked = st.checkbox(item["name"], help="MRP: ₹10,000 | You Save: 12%" if item["name"] == "BuyBack Guarantee" else None)
 
     if checked:
-        # Set custom minimum quantity for specific items
         min_qty = 1
         default_qty = 1
 
@@ -72,30 +71,31 @@ for item in selected_items:
         battery_qty = item["qty"]
         break
 
-# Discount selection
+# Determine applicable discount levels
 st.markdown("---")
 st.write("### Select Discount Level")
-selected_level = st.radio(
-    "Choose one of the levels based on offer type:",
-    list(discount_levels.keys())
-)
 
-discount_type = "single"
-if battery_qty == 1:
-    discount_type = "single"
-elif battery_qty == 2:
-    discount_type = "double"
-elif battery_qty >= 3:
-    discount_type = "three"
-
-discount_value = discount_levels[selected_level][discount_type]
 if battery_qty >= 3:
-    discount_value += 30000
+    applicable_discounts = battery_discount_map[3]
+elif battery_qty == 2:
+    applicable_discounts = battery_discount_map[2]
+elif battery_qty == 1:
+    applicable_discounts = battery_discount_map[1]
+else:
+    applicable_discounts = {}
 
-MAX_DISCOUNT = 150000
-if discount_value > MAX_DISCOUNT:
-    st.warning(f"Discount capped at ₹{MAX_DISCOUNT:,.0f}")
-    discount_value = MAX_DISCOUNT
+selected_level = None
+if applicable_discounts:
+    cols = st.columns(len(applicable_discounts))
+    for idx, (level, value) in enumerate(applicable_discounts.items()):
+        if cols[idx].button(f"{level}\n₹{value:,.0f}"):
+            selected_level = level
+    if selected_level:
+        discount_value = applicable_discounts[selected_level]
+    else:
+        discount_value = 0
+else:
+    discount_value = 0
 
 final_price = total_price - discount_value
 
@@ -108,10 +108,14 @@ if selected_items:
         st.write(f"- {i['name']} (x{i['qty']})")
 
     st.write(f"**Subtotal:** ₹{total_price:,.0f}")
-    st.write(f"**Discount ({selected_level}):** ₹{discount_value:,.0f}")
+    if selected_level:
+        st.write(f"**Discount ({selected_level}):** ₹{discount_value:,.0f}")
+    else:
+        st.write("**Discount:** ₹0")
     st.write(f"**Final Price (After Discount):** ₹{final_price:,.0f}")
 else:
     st.info("Please select items to see the bill.")
+
 
 
 import pandas as pd
