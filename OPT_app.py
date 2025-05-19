@@ -16,14 +16,13 @@ items = [
     {"name": "Ginger Kit", "price": 11200},
     {"name": "Seat", "price": 7840},
     {"name": "Jack", "price": 1680},
-    {"name": "BuyBack Guarantee", "price": 8929},
+    {"name": "BuyBack Guarantee", "price": 10000},
 ]
 
 # Discount levels by battery quantity
 battery_discount_map = {
     1: [100000, 110000, 120000, 135000],
     2: [130000, 140000, 150000, 165000],
-    3: [160000, 170000, 180000, 195000],
 }
 
 st.write("---")
@@ -75,9 +74,7 @@ for item in selected_items:
 st.markdown("---")
 st.write("### Select Discount Level")
 
-if battery_qty >= 3:
-    applicable_discounts = battery_discount_map[3]
-elif battery_qty == 2:
+if battery_qty >= 2:
     applicable_discounts = battery_discount_map[2]
 elif battery_qty == 1:
     applicable_discounts = battery_discount_map[1]
