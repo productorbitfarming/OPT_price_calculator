@@ -34,10 +34,13 @@ for item in items:
 
 st.markdown("---")
 st.write("### Apply Discount")
+
 discount_input = st.text_input("Enter discount (e.g. `10%` or `5000`):")
 
-# Discount logic
+# Discount logic with cap
 discount_value = 0
+MAX_DISCOUNT = 150000
+
 if discount_input:
     discount_input = discount_input.strip()
     try:
@@ -47,17 +50,23 @@ if discount_input:
         else:
             discount_value = float(discount_input)
     except:
-        st.warning("Invalid discount input. Please enter like `10%` or `5000`.")
+        st.warning("Invalid discount input. Use like `10%` or `5000`.")
+
+    if discount_value > MAX_DISCOUNT:
+        st.warning(f"Discount capped at ₹{MAX_DISCOUNT:,.0f}")
+        discount_value = MAX_DISCOUNT
 
 final_price = total_price - discount_value
 
-# Results
+# ✅ Final Summary Display
 st.markdown("---")
 st.write("### 🧾 Bill Summary")
 
 if selected_items:
+    st.write("**Selected Items:**")
     for i in selected_items:
-        st.write(f"{i['name']} (x{i['qty']}) = ₹{i['total']:,.0f}")
+        st.write(f"- {i['name']} (x{i['qty']})")
+
     st.write(f"**Subtotal:** ₹{total_price:,.0f}")
     st.write(f"**Discount:** ₹{discount_value:,.0f}")
     st.write(f"**Final Price (After Discount):** ₹{final_price:,.0f}")
@@ -71,9 +80,9 @@ if selected_items:
     df = pd.DataFrame(selected_items)
 
     df_summary = pd.DataFrame({
-        "Description": ["Subtotal", "Discount", "Final Price"],
-        "Amount": [total_price, discount_value, final_price]
-    })
+    "Description": ["Subtotal", "Discount (Capped)", "Final Price"],
+    "Amount": [total_price, discount_value, final_price]})
+
 
     st.markdown("### 📥 Download Your Bill")
 
