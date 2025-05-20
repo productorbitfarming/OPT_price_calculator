@@ -5,7 +5,7 @@ import os
 
 # Set page config
 st.set_page_config(page_title="Orbit PT Pro Pricing Calculator", layout="wide")
-st.title("🚜 Orbit PT Pro Quotation Calculator")
+st.title("Orbit PT Pro Quotation Calculator")
 
 # Items and pricing list
 items = [
