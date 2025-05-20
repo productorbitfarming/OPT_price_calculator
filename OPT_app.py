@@ -2,10 +2,8 @@ import streamlit as st
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import inch
 from PIL import Image
 import tempfile
 import os
@@ -13,6 +11,13 @@ import os
 # Set page config
 st.set_page_config(page_title="Orbit PT Pro Pricing Calculator", layout="wide")
 st.title("Orbit PT Pro Quotation Calculator")
+
+# Customer information input
+st.subheader("Customer Information")
+customer_name = st.text_input("Customer Name")
+customer_address = st.text_area("Address")
+customer_phone = st.text_input("Phone Number")
+customer_email = st.text_input("Email (optional)")
 
 # Items and pricing list
 items = [
@@ -125,30 +130,42 @@ if selected_items:
     if st.button("📄 Download PDF"):
         letterhead_path = "letterpad design_printable (1)_page-0001.jpg"
         img = Image.open(letterhead_path).convert("RGB")
-    
+
         tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
         c = canvas.Canvas(tmp_file.name, pagesize=A4)
-    
+
         # Set background image
         bg = ImageReader(img)
         c.drawImage(bg, 0, 0, width=A4[0], height=A4[1])
-    
+
         # Set margin to avoid overlap with header
-        y = 660  # Lowered Y to avoid header content
-        c.setFont("Helvetica", 16)
+        y = 660
+        c.setFont("Helvetica-Bold", 18)
+        c.setFillColor(colors.HexColor("#1b4332"))
         c.drawCentredString(300, y, "Quotation Summary")
-        y -= 30
-    
-        # Prepare data for table (Item name and quantity only)
+        y -= 40
+
+        # Customer Info Section
+        c.setFont("Helvetica", 10)
+        c.setFillColor(colors.black)
+        c.drawString(50, y, f"Customer Name: { customer_name}")
+        y -= 15
+        c.drawString(50, y, f"Address: { customer_address}")
+        y -= 15
+        c.drawString(50, y, f"Phone Number: { customer_phone}")
+        y -= 15
+        c.drawString(50, y, f"Email: { customer_email}")
+        y -= 25
+
+        # Table (item and quantity)
         data = [["Item Name", "Quantity"]]
         for item in selected_items:
             data.append([item["name"], str(item["qty"])])
-    
-        # Create table
+
         table = Table(data, colWidths=[370, 100])
         table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2d6a4f")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
             ("ALIGN", (0, 0), (-1, -1), "LEFT"),
             ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
             ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
@@ -156,20 +173,21 @@ if selected_items:
             ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
             ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
         ]))
-    
-        # Wrap the table in a Frame to control positioning
+
         table.wrapOn(c, 50, y)
         table.drawOn(c, 50, y - len(data) * 18)
-    
-        # Add final price section below table
-        summary_y = y - len(data) * 18 - 40
-        c.setFont("Helvetica", 11)
-        c.drawString(50, summary_y, f"Total Price: Rs{total_price:,.0f}")
-        c.drawString(50, summary_y - 20, f"Discount Applied: Rs{selected_discount:,.0f}")
-        c.drawString(50, summary_y - 40, f"Discounted Price (All Inclusive): Rs{final_price:,.0f}")
-    
+
+        summary_y = y - len(data) * 18 - 50
+        c.setFont("Helvetica-Bold", 12)
+        c.setFillColor(colors.HexColor("#000000"))
+        c.drawString(50, summary_y, f"Total Price: Rs {total_price:,.0f}")
+        c.drawString(50, summary_y - 20, f"Discount Applied: Rs {selected_discount:,.0f}")
+        c.drawString(50, summary_y - 40, f"Discounted Price (All Inclusive): Rs {final_price:,.0f}")
+
         c.save()
-    
+
         with open(tmp_file.name, "rb") as f:
             st.download_button("Download PDF Quotation", f, file_name="Orbit_Quotation.pdf", mime="application/pdf")
         os.unlink(tmp_file.name)
+else:
+    st.info("Please select items to see the bill.")
