@@ -154,8 +154,13 @@ if selected_items:
         y -= 15
         c.drawString(50, y, f"Phone Number: { customer_phone}")
         y -= 15
-        c.drawString(50, y, f"Email: { customer_email}")
-        y -= 25
+        if customer_email.strip():
+            c.drawString(50, y, f"Email: { customer_email}")
+            y -= 15
+        else:
+            y -= 5
+
+        y -= 10
 
         # Table (item and quantity)
         data = [["Item Name", "Quantity"]]
