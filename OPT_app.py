@@ -2,6 +2,10 @@ import streamlit as st
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
 from PIL import Image
 import tempfile
 import os
@@ -25,7 +29,6 @@ items = [
     {"name": "BuyBack Guarantee", "price": 8929},
 ]
 
-# Discount levels by battery quantity
 battery_discount_map = {
     1: [100000, 110000, 120000, 135000],
     2: [130000, 140000, 150000, 165000]
@@ -38,7 +41,7 @@ selected_items = []
 for item in items:
     col1, col2 = st.columns([2, 1])
     with col1:
-        checked = st.checkbox(item["name"], help="MRP: ₹10,000 | You Save: 12%" if item["name"] == "BuyBack Guarantee" else None)
+        checked = st.checkbox(item["name"])
 
     if checked:
         min_qty = 1
@@ -64,9 +67,7 @@ for item in items:
         total_price += item_total
         selected_items.append({
             "name": item["name"],
-            "qty": qty,
-            "unit_price": item["price"],
-            "total": item_total
+            "qty": qty
         })
 
 # Detect battery quantity
@@ -76,12 +77,11 @@ for item in selected_items:
         battery_qty = item["qty"]
         break
 
-# Ask if user wants discount
+# Discount
 st.markdown("---")
 st.write("### Discount Options")
 apply_discount = st.radio("Do you want to apply a discount?", ("No", "Yes"))
 
-# Ensure session state for discount selection
 if "selected_discount" not in st.session_state:
     st.session_state.selected_discount = 0
 
@@ -105,12 +105,12 @@ else:
 selected_discount = st.session_state.selected_discount
 final_price = total_price - selected_discount
 
-# Summary
+# Bill Summary
 st.markdown("---")
 st.write("### 📟 Bill Summary")
 
 if selected_items:
-    st.markdown("#### ORBIT AGRITECH PRIVATE LIMITED")
+    st.markdown("#### HIGHER ORBIT AGRITECH PRIVATE LIMITED")
     st.markdown("**Quotation Summary**")
 
     st.table({
@@ -122,47 +122,59 @@ if selected_items:
     st.write(f"**Discount Applied:** ₹{selected_discount:,.0f}")
     st.write(f"**Discounted Price (All Inclusive):** ₹{final_price:,.0f}")
 
-    # Downloadable PDF
+    # PDF Generation
     if st.button("📄 Download PDF"):
         letterhead_path = "letterpad design-03 (1).jpg"
         img = Image.open(letterhead_path).convert("RGB")
+        bg = ImageReader(img)
 
         tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-        c = canvas.Canvas(tmp_file.name, pagesize=A4)
+        doc = SimpleDocTemplate(tmp_file.name, pagesize=A4)
+        styles = getSampleStyleSheet()
+        story = []
 
-        # Set background image
-        bg = ImageReader(img)
-        c.drawImage(bg, 0, 0, width=A4[0], height=A4[1])
+        # Add space below letterhead
+        story.append(Spacer(1, 1.5 * inch))
+        story.append(Paragraph("Higher Orbit Agritech Private Limited", styles['Title']))
+        story.append(Paragraph("Quotation Summary", styles['Heading2']))
+        story.append(Spacer(1, 0.2 * inch))
 
-        # Add text
-        y = 750
-        c.setFont("Helvetica-Bold", 16)
-        c.drawCentredString(300, y, "Orbit Agritech Private Limited")
-        y -= 30
-        c.setFont("Helvetica", 12)
-        c.drawCentredString(300, y, "Quotation Summary")
-        y -= 40
-
+        # Table with item name and quantity only
+        data = [["Item Name", "Quantity"]]
         for item in selected_items:
-            c.drawString(50, y, f"{item['name']}")
-            c.drawString(450, y, f"Qty: {item['qty']}")
-            y -= 20
-            if y < 100:
-                c.showPage()
-                c.drawImage(bg, 0, 0, width=A4[0], height=A4[1])
-                y = 750
+            data.append([
+                item["name"],
+                str(item["qty"])
+            ])
 
-        y -= 20
-        c.drawString(50, y, f"Total Price: ₹{total_price:,.0f}")
-        y -= 20
-        c.drawString(50, y, f"Discount Applied: ₹{selected_discount:,.0f}")
-        y -= 20
-        c.drawString(50, y, f"Discounted Price (All Inclusive): ₹{final_price:,.0f}")
+        table = Table(data, colWidths=[4.5 * inch, 2 * inch])
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+            ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+            ("GRID", (0, 0), (-1, -1), 1, colors.black),
+        ]))
+        story.append(table)
+        story.append(Spacer(1, 0.3 * inch))
 
-        c.save()
+        # Pricing summary
+        story.append(Paragraph(f"Total Price: ₹{total_price:,.0f}", styles['Normal']))
+        story.append(Paragraph(f"Discount Applied: ₹{selected_discount:,.0f}", styles['Normal']))
+        story.append(Paragraph(f"Discounted Price (All Inclusive): ₹{final_price:,.0f}", styles['Normal']))
+
+        # Background drawing
+        def add_letterhead(canvas, doc):
+            canvas.drawImage(bg, 0, 0, width=A4[0], height=A4[1])
+
+        doc.build(story, onFirstPage=add_letterhead, onLaterPages=add_letterhead)
 
         with open(tmp_file.name, "rb") as f:
             st.download_button("Download PDF Quotation", f, file_name="Orbit_Quotation.pdf", mime="application/pdf")
+
         os.unlink(tmp_file.name)
+
 else:
     st.info("Please select items to see the bill.")
