@@ -110,7 +110,6 @@ st.markdown("---")
 st.write("### 📟 Bill Summary")
 
 if selected_items:
-    st.markdown("#### HIGHER ORBIT AGRITECH PRIVATE LIMITED")
     st.markdown("**Quotation Summary**")
 
     st.table({
@@ -118,9 +117,9 @@ if selected_items:
         "Quantity": [item["qty"] for item in selected_items]
     })
 
-    st.write(f"**Total Price:** ₹{total_price:,.0f}")
-    st.write(f"**Discount Applied:** ₹{selected_discount:,.0f}")
-    st.write(f"**Discounted Price (All Inclusive):** ₹{final_price:,.0f}")
+    st.write(f"**Total Price:** Rs{total_price:,.0f}")
+    st.write(f"**Discount Applied:** Rs{selected_discount:,.0f}")
+    st.write(f"**Discounted Price (All Inclusive):** Rs{final_price:,.0f}")
 
     # PDF Generation
     if st.button("📄 Download PDF"):
