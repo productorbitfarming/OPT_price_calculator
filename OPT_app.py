@@ -1,5 +1,8 @@
 import streamlit as st
-from fpdf import FPDF
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
+from PIL import Image
 import tempfile
 import os
 
@@ -104,7 +107,7 @@ final_price = total_price - selected_discount
 
 # Summary
 st.markdown("---")
-st.write("### 🧾 Bill Summary")
+st.write("### 📟 Bill Summary")
 
 if selected_items:
     st.markdown("#### ORBIT AGRITECH PRIVATE LIMITED")
@@ -121,30 +124,43 @@ if selected_items:
 
     # Downloadable PDF
     if st.button("📄 Download PDF"):
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", 'B', 16)
-        pdf.cell(200, 10, "Orbit Agritech Private Limited", ln=True, align='C')
-        pdf.set_font("Arial", '', 12)
-        pdf.ln(10)
-        pdf.cell(200, 10, "Quotation Summary", ln=True, align='C')
-        pdf.ln(5)
-
-        for item in selected_items:
-            pdf.cell(150, 10, item["name"], border=1)
-            pdf.cell(40, 10, str(item["qty"]), border=1, ln=True)
-
-        pdf.ln(5)
-        pdf.cell(150, 10, "Total Price", border=1)
-        pdf.cell(40, 10, f"Rs {total_price:,.0f}", border=1, ln=True)
-        pdf.cell(150, 10, "Discount", border=1)
-        pdf.cell(40, 10, f"Rs {selected_discount:,.0f}", border=1, ln=True)
-        pdf.cell(150, 10, "Discounted Price (All Inclusive)", border=1)
-        pdf.cell(40, 10, f"Rs {final_price:,.0f}", border=1, ln=True)
-
+        letterhead_path = "letterpad design-03 (1).jpg"
+        img = Image.open(letterhead_path).convert("RGB")
 
         tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-        pdf.output(tmp_file.name)
+        c = canvas.Canvas(tmp_file.name, pagesize=A4)
+
+        # Set background image
+        bg = ImageReader(img)
+        c.drawImage(bg, 0, 0, width=A4[0], height=A4[1])
+
+        # Add text
+        y = 750
+        c.setFont("Helvetica-Bold", 16)
+        c.drawCentredString(300, y, "Orbit Agritech Private Limited")
+        y -= 30
+        c.setFont("Helvetica", 12)
+        c.drawCentredString(300, y, "Quotation Summary")
+        y -= 40
+
+        for item in selected_items:
+            c.drawString(50, y, f"{item['name']}")
+            c.drawString(450, y, f"Qty: {item['qty']}")
+            y -= 20
+            if y < 100:
+                c.showPage()
+                c.drawImage(bg, 0, 0, width=A4[0], height=A4[1])
+                y = 750
+
+        y -= 20
+        c.drawString(50, y, f"Total Price: ₹{total_price:,.0f}")
+        y -= 20
+        c.drawString(50, y, f"Discount Applied: ₹{selected_discount:,.0f}")
+        y -= 20
+        c.drawString(50, y, f"Discounted Price (All Inclusive): ₹{final_price:,.0f}")
+
+        c.save()
+
         with open(tmp_file.name, "rb") as f:
             st.download_button("Download PDF Quotation", f, file_name="Orbit_Quotation.pdf", mime="application/pdf")
         os.unlink(tmp_file.name)
