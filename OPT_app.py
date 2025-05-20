@@ -16,13 +16,14 @@ items = [
     {"name": "Ginger Kit", "price": 11200},
     {"name": "Seat", "price": 7840},
     {"name": "Jack", "price": 1680},
-    {"name": "BuyBack Guarantee", "price": 10000},
+    {"name": "BuyBack Guarantee", "price": 8929},
 ]
 
 # Discount levels by battery quantity
 battery_discount_map = {
     1: [100000, 110000, 120000, 135000],
     2: [130000, 140000, 150000, 165000],
+    3: [160000, 170000, 180000, 195000],
 }
 
 st.write("---")
@@ -74,21 +75,27 @@ for item in selected_items:
 st.markdown("---")
 st.write("### Select Discount Level")
 
-if battery_qty >= 2:
+if battery_qty >= 3:
+    applicable_discounts = battery_discount_map[3]
+elif battery_qty == 2:
     applicable_discounts = battery_discount_map[2]
 elif battery_qty == 1:
     applicable_discounts = battery_discount_map[1]
 else:
     applicable_discounts = []
 
-selected_discount = 0
+# Ensure session state
+if "selected_discount" not in st.session_state:
+    st.session_state.selected_discount = 0
+
 if applicable_discounts:
     cols = st.columns(len(applicable_discounts))
     for i, val in enumerate(applicable_discounts):
         with cols[i]:
             if st.button(f"₹{val:,.0f}", key=f"discount_{val}"):
-                selected_discount = val
+                st.session_state.selected_discount = val
 
+selected_discount = st.session_state.selected_discount
 final_price = total_price - selected_discount
 
 # Summary
