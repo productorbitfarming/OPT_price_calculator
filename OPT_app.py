@@ -26,7 +26,7 @@ items = [
     {"name": "Ginger Kit", "price": 11200},
     {"name": "Seat", "price": 7840},
     {"name": "Jack", "price": 1680},
-    {"name": "BuyBack Guarantee", "price": 8929},
+    {"name": "BuyBack Guarantee", "price": 10000},
 ]
 
 battery_discount_map = {
@@ -123,57 +123,57 @@ if selected_items:
     st.write(f"**Discounted Price (All Inclusive):** ₹{final_price:,.0f}")
 
     # PDF Generation
-   if st.button("📄 Download PDF"):
-    letterhead_path = "letterpad design-03 (1).jpg"
-    img = Image.open(letterhead_path).convert("RGB")
-
-    tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-    c = canvas.Canvas(tmp_file.name, pagesize=A4)
-
-    # Set background image
-    bg = ImageReader(img)
-    c.drawImage(bg, 0, 0, width=A4[0], height=A4[1])
-
-    # Set margin to avoid overlap with header
-    y = 660  # Lowered Y to avoid header content
-    c.setFont("Helvetica-Bold", 16)
-    c.drawCentredString(300, y, "Higher Orbit Agritech Private Limited")
-    y -= 30
-    c.setFont("Helvetica", 12)
-    c.drawCentredString(300, y, "Quotation Summary")
-    y -= 40
-
-    # Prepare data for table (Item name and quantity only)
-    data = [["Item Name", "Quantity"]]
-    for item in selected_items:
-        data.append([item["name"], str(item["qty"])])
-
-    # Create table
-    table = Table(data, colWidths=[370, 100])
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
-        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-        ("FONTSIZE", (0, 0), (-1, -1), 10),
-        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-    ]))
-
-    # Wrap the table in a Frame to control positioning
-    table.wrapOn(c, 50, y)
-    table.drawOn(c, 50, y - len(data) * 18)
-
-    # Add final price section below table
-    summary_y = y - len(data) * 18 - 40
-    c.setFont("Helvetica", 11)
-    c.drawString(50, summary_y, f"Total Price: ₹{total_price:,.0f}")
-    c.drawString(50, summary_y - 20, f"Discount Applied: ₹{selected_discount:,.0f}")
-    c.drawString(50, summary_y - 40, f"Discounted Price (All Inclusive): ₹{final_price:,.0f}")
-
-    c.save()
-
-    with open(tmp_file.name, "rb") as f:
-        st.download_button("Download PDF Quotation", f, file_name="Orbit_Quotation.pdf", mime="application/pdf")
-    os.unlink(tmp_file.name)
+    if st.button("📄 Download PDF"):
+        letterhead_path = "letterpad design-03 (1).jpg"
+        img = Image.open(letterhead_path).convert("RGB")
+    
+        tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+        c = canvas.Canvas(tmp_file.name, pagesize=A4)
+    
+        # Set background image
+        bg = ImageReader(img)
+        c.drawImage(bg, 0, 0, width=A4[0], height=A4[1])
+    
+        # Set margin to avoid overlap with header
+        y = 660  # Lowered Y to avoid header content
+        c.setFont("Helvetica-Bold", 16)
+        c.drawCentredString(300, y, "Higher Orbit Agritech Private Limited")
+        y -= 30
+        c.setFont("Helvetica", 12)
+        c.drawCentredString(300, y, "Quotation Summary")
+        y -= 40
+    
+        # Prepare data for table (Item name and quantity only)
+        data = [["Item Name", "Quantity"]]
+        for item in selected_items:
+            data.append([item["name"], str(item["qty"])])
+    
+        # Create table
+        table = Table(data, colWidths=[370, 100])
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+            ("FONTSIZE", (0, 0), (-1, -1), 10),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ]))
+    
+        # Wrap the table in a Frame to control positioning
+        table.wrapOn(c, 50, y)
+        table.drawOn(c, 50, y - len(data) * 18)
+    
+        # Add final price section below table
+        summary_y = y - len(data) * 18 - 40
+        c.setFont("Helvetica", 11)
+        c.drawString(50, summary_y, f"Total Price: ₹{total_price:,.0f}")
+        c.drawString(50, summary_y - 20, f"Discount Applied: ₹{selected_discount:,.0f}")
+        c.drawString(50, summary_y - 40, f"Discounted Price (All Inclusive): ₹{final_price:,.0f}")
+    
+        c.save()
+    
+        with open(tmp_file.name, "rb") as f:
+            st.download_button("Download PDF Quotation", f, file_name="Orbit_Quotation.pdf", mime="application/pdf")
+        os.unlink(tmp_file.name)
