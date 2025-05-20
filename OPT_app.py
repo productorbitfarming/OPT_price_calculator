@@ -136,11 +136,12 @@ if selected_items:
 
         pdf.ln(5)
         pdf.cell(150, 10, "Total Price", border=1)
-        pdf.cell(40, 10, f"₹{total_price:,.0f}", border=1, ln=True)
+        pdf.cell(40, 10, f"Rs {total_price:,.0f}", border=1, ln=True)
         pdf.cell(150, 10, "Discount", border=1)
-        pdf.cell(40, 10, f"₹{selected_discount:,.0f}", border=1, ln=True)
+        pdf.cell(40, 10, f"Rs {selected_discount:,.0f}", border=1, ln=True)
         pdf.cell(150, 10, "Discounted Price (All Inclusive)", border=1)
-        pdf.cell(40, 10, f"₹{final_price:,.0f}", border=1, ln=True)
+        pdf.cell(40, 10, f"Rs {final_price:,.0f}", border=1, ln=True)
+
 
         tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
         pdf.output(tmp_file.name)
