@@ -123,7 +123,7 @@ if selected_items:
 
     # PDF Generation
     if st.button("📄 Download PDF"):
-        letterhead_path = "letterpad design-03 (1).jpg"
+        letterhead_path = "letterpad design_printable (1).pdf"
         img = Image.open(letterhead_path).convert("RGB")
     
         tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
