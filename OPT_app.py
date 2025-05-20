@@ -135,12 +135,9 @@ if selected_items:
     
         # Set margin to avoid overlap with header
         y = 660  # Lowered Y to avoid header content
-        c.setFont("Helvetica-Bold", 16)
-        c.drawCentredString(300, y, "Higher Orbit Agritech Private Limited")
-        y -= 30
-        c.setFont("Helvetica", 12)
+        c.setFont("Helvetica", 16)
         c.drawCentredString(300, y, "Quotation Summary")
-        y -= 40
+        y -= 30
     
         # Prepare data for table (Item name and quantity only)
         data = [["Item Name", "Quantity"]]
@@ -167,9 +164,9 @@ if selected_items:
         # Add final price section below table
         summary_y = y - len(data) * 18 - 40
         c.setFont("Helvetica", 11)
-        c.drawString(50, summary_y, f"Total Price: ₹{total_price:,.0f}")
-        c.drawString(50, summary_y - 20, f"Discount Applied: ₹{selected_discount:,.0f}")
-        c.drawString(50, summary_y - 40, f"Discounted Price (All Inclusive): ₹{final_price:,.0f}")
+        c.drawString(50, summary_y, f"Total Price: Rs{total_price:,.0f}")
+        c.drawString(50, summary_y - 20, f"Discount Applied: Rs{selected_discount:,.0f}")
+        c.drawString(50, summary_y - 40, f"Discounted Price (All Inclusive): Rs{final_price:,.0f}")
     
         c.save()
     
