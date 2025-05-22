@@ -29,12 +29,7 @@ st.subheader("Who is filling this form? *")
 form_filled_by = st.selectbox("Select Role", ["", "Telecaller", "Business Development Officer", "Manager", "Founder"])
 st.session_state.form_filled_by = form_filled_by
 
-# Ensure required fields are filled
-#if not customer_name or not customer_address or not customer_phone or not form_filled_by:
-#    st.warning("Please fill all required fields marked with * to continue.")
-#    st.stop()
-
-# Role-based discount caps
+# Role-based subsidy caps
 discount_caps = {
     "Telecaller": (100000, 130000),
     "Business Development Officer": (110000, 140000),
@@ -94,7 +89,7 @@ for item in items:
         if item["name"] == "Battery Sets":
             battery_qty = qty
 
-# 3. Discount Section
+# 3. Subsidy Section
 st.markdown("---")
 st.write("### 💸 Subsidy Options")
 
@@ -103,7 +98,7 @@ apply_discount = st.radio("Do you want to apply a Subsidy?", ("No", "Yes"))
 if apply_discount == "Yes":
     st.markdown("#### Select Subsidy Amount")
 
-    # Determine max discount allowed
+    # Determine max subsidy allowed
     single_cap, double_cap = discount_caps[form_filled_by]
     max_discount = single_cap if battery_qty <= 1 else double_cap
 
@@ -114,7 +109,7 @@ if apply_discount == "Yes":
         step=1000,
         key="selected_discount"
     )
-    st.success(f"Selected Discount: ₹{st.session_state.selected_discount:,.0f}")
+    st.success(f"Selected Subsidy: ₹{st.session_state.selected_discount:,.0f}")
 else:
     st.session_state.selected_discount = 0
 
@@ -163,8 +158,7 @@ if selected_items:
         c.drawString(50, y, f"Address: {customer_address}")
         y -= 15
         c.drawString(50, y, f"Phone Number: {customer_phone}")
-        y -= 15
-        y -= 10
+        y -= 25
 
         # Table
         data = [["Item Name", "Quantity"]]
