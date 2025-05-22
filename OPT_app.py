@@ -1,11 +1,14 @@
 import streamlit as st
-from io import BytesIO
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
-from reportlab.platypus import Table, TableStyle
+from reportlab.platypus import Table, TableStyle, Paragraph, Frame
 from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.enums import TA_LEFT
 from PIL import Image
+import tempfile
+import os
 
 # Set page config
 st.set_page_config(page_title="Orbit PT Pro Pricing Calculator", layout="wide")
@@ -73,16 +76,14 @@ for item in items:
 st.markdown("---")
 st.write("### 💸 Discount Options")
 
-# Initialize session state
 if "selected_discount" not in st.session_state:
     st.session_state.selected_discount = 0
 
 apply_discount = st.radio("Do you want to apply a discount?", ("No", "Yes"))
 
 if apply_discount == "Yes":
-    st.markdown("#### Select Discount Amount (Max ₹200,000)")
     st.slider(
-        "Discount Slider",
+        "Discount Slider (Max ₹2,00,000)",
         min_value=0,
         max_value=200000,
         step=1000,
@@ -97,7 +98,7 @@ final_price = total_price - selected_discount
 
 # Bill Summary
 st.markdown("---")
-st.write("### 💿 Bill Summary")
+st.write("### 📟 Bill Summary")
 
 if selected_items:
     st.markdown("**Quotation Summary**")
@@ -107,39 +108,54 @@ if selected_items:
         "Quantity": [item["qty"] for item in selected_items]
     })
 
-    st.write(f"**Total Price:** Rs {total_price:,.0f}")
-    st.write(f"**Discount Applied:** Rs {selected_discount:,.0f}")
-    st.write(f"**Discounted Price (All Inclusive):** Rs {final_price:,.0f}")
+    st.write(f"**Total Price:** Rs{total_price:,.0f}")
+    st.write(f"**Discount Applied:** Rs{selected_discount:,.0f}")
+    st.write(f"**Discounted Price (All Inclusive):** Rs{final_price:,.0f}")
 
-    # Create PDF in memory
-    def generate_pdf():
-        buffer = BytesIO()
-        c = canvas.Canvas(buffer, pagesize=A4)
-
+    # PDF Generation
+    if st.button("📄 Create & Download Quotation PDF"):
         letterhead_path = "letterpad design_printable (1)_page-0001.jpg"
         img = Image.open(letterhead_path).convert("RGB")
+
+        tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+        c = canvas.Canvas(tmp_file.name, pagesize=A4)
+
+        # Set background image
         bg = ImageReader(img)
         c.drawImage(bg, 0, 0, width=A4[0], height=A4[1])
 
+        # Title
         y = 660
         c.setFont("Helvetica-Bold", 18)
         c.setFillColor(colors.HexColor("#1b4332"))
         c.drawCentredString(300, y, "Quotation Summary")
         y -= 40
 
+        # Customer Info
         c.setFont("Helvetica", 10)
         c.setFillColor(colors.black)
         c.drawString(50, y, f"Customer Name: {customer_name}")
-        y -= 15
-        c.drawString(50, y, f"Address: {customer_address}")
         y -= 15
         c.drawString(50, y, f"Phone Number: {customer_phone}")
         y -= 15
         if customer_email.strip():
             c.drawString(50, y, f"Email: {customer_email}")
             y -= 15
-        y -= 10
+        y -= 5
 
+        # Render address with punctuation and line breaks
+        style = getSampleStyleSheet()["Normal"]
+        style.fontName = "Helvetica"
+        style.fontSize = 10
+        style.leading = 12
+        style.alignment = TA_LEFT
+
+        address_frame = Frame(50, y - 60, A4[0] - 100, 50, showBoundary=0)
+        address_para = Paragraph(f"<b>Address:</b> {customer_address.replace(chr(10), '<br/>')}", style)
+        address_frame.addFromList([address_para], c)
+        y -= 90
+
+        # Table (items)
         data = [["Item Name", "Quantity"]]
         for item in selected_items:
             data.append([item["name"], str(item["qty"])])
@@ -161,21 +177,15 @@ if selected_items:
 
         summary_y = y - len(data) * 18 - 50
         c.setFont("Helvetica-Bold", 12)
-        c.setFillColor(colors.black)
+        c.setFillColor(colors.HexColor("#000000"))
         c.drawString(50, summary_y, f"Total Price: Rs {total_price:,.0f}")
         c.drawString(50, summary_y - 20, f"Discount Applied: Rs {selected_discount:,.0f}")
         c.drawString(50, summary_y - 40, f"Discounted Price (All Inclusive): Rs {final_price:,.0f}")
 
         c.save()
-        buffer.seek(0)
-        return buffer
 
-    pdf_buffer = generate_pdf()
-    st.download_button(
-        label="📅 Download Quotation PDF",
-        data=pdf_buffer,
-        file_name="Orbit_Quotation.pdf",
-        mime="application/pdf"
-    )
+        with open(tmp_file.name, "rb") as f:
+            st.download_button("⬇️ Download Orbit Quotation PDF", f, file_name="Orbit_Quotation.pdf", mime="application/pdf")
+        os.unlink(tmp_file.name)
 else:
     st.info("Please select items to see the bill.")
