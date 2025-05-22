@@ -83,20 +83,18 @@ st.markdown("### 💸 Discount Options")
 apply_discount = st.radio("Do you want to apply a discount?", ("No", "Yes"))
 
 if apply_discount == "Yes":
-    st.markdown("#### Select Discount Amount Using Slider (Max ₹2,00,000)")
+    st.markdown("#### Select Discount Amount (Max ₹2,00,000)")
 
-    selected = st.slider(
+    # Just bind the session key directly to the slider — no manual update needed
+    st.slider(
         "Discount Slider",
         min_value=0,
         max_value=200000,
-        value=st.session_state.selected_discount,
-        step=1000
+        step=1000,
+        key="selected_discount"  # directly updates session state
     )
-    
-    # Store the selected value
-    st.session_state.selected_discount = selected
 
-    st.success(f"Selected Discount: ₹{selected:,.0f}")
+    st.success(f"Selected Discount: ₹{st.session_state.selected_discount:,.0f}")
 else:
     st.session_state.selected_discount = 0
 
