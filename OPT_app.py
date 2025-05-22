@@ -34,11 +34,6 @@ items = [
     {"name": "BuyBack Guarantee", "price": 10000},
 ]
 
-battery_discount_map = {
-    1: [100000, 110000, 120000, 135000],
-    2: [130000, 140000, 150000, 165000]
-}
-
 st.write("---")
 total_price = 0
 selected_items = []
@@ -75,45 +70,48 @@ for item in items:
             "qty": qty
         })
 
-# Detect battery quantity
-battery_qty = 0
-for item in selected_items:
-    if item["name"] == "Battery Sets":
-        battery_qty = item["qty"]
-        break
-
-# Discount
+# Discount section
 st.markdown("---")
-st.write("### Discount Options")
-apply_discount = st.radio("Do you want to apply a discount?", ("No", "Yes"))
+st.write("### 💸 Discount Options")
 
 if "selected_discount" not in st.session_state:
     st.session_state.selected_discount = 0
 
+apply_discount = st.radio("Do you want to apply a discount?", ("No", "Yes"))
+
 if apply_discount == "Yes":
-    manual_discount = 0
-    if battery_qty >= 2:
-        applicable_discounts = battery_discount_map[2]
-    elif battery_qty == 1:
-        applicable_discounts = battery_discount_map[1]
-    else:
-        applicable_discounts = []
+    st.markdown("#### Select or Enter Discount Amount (Max ₹2,00,000)")
 
-    if applicable_discounts:
-        st.markdown("Select a discount amount or enter manually:")
-        cols = st.columns(len(applicable_discounts))
-        for i, val in enumerate(applicable_discounts):
-            with cols[i]:
-                if st.button(f"₹{val:,.0f}", key=f"discount_{val}"):
-                    st.session_state.selected_discount = val
+    col1, col2 = st.columns([4, 1])
 
-    # Manual discount entry
-    manual_discount = st.number_input("Or enter a custom discount (max ₹2,00,000)", 
-                                      min_value=0, 
-                                      max_value=200000, 
-                                      value=st.session_state.selected_discount,
-                                      step=1000)
-    st.session_state.selected_discount = manual_discount
+    with col1:
+        discount_slider = st.slider(
+            "Select Discount",
+            min_value=0,
+            max_value=200000,
+            value=st.session_state.selected_discount,
+            step=1000,
+            label_visibility="collapsed",
+            key="discount_slider"
+        )
+
+    with col2:
+        discount_input = st.number_input(
+            "Manual Entry",
+            min_value=0,
+            max_value=200000,
+            value=st.session_state.selected_discount,
+            step=1000,
+            key="discount_input"
+        )
+
+    # Sync slider and input box
+    if discount_slider != st.session_state.selected_discount:
+        st.session_state.selected_discount = discount_slider
+    elif discount_input != st.session_state.selected_discount:
+        st.session_state.selected_discount = discount_input
+
+    st.success(f"Selected Discount: ₹{st.session_state.selected_discount:,.0f}")
 else:
     st.session_state.selected_discount = 0
 
