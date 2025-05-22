@@ -84,32 +84,29 @@ if apply_discount == "Yes":
 
     col1, col2 = st.columns([4, 1])
 
-    with col1:
-        discount_slider = st.slider(
-            "Select Discount",
-            min_value=0,
-            max_value=200000,
-            value=st.session_state.selected_discount,
-            step=1000,
-            label_visibility="collapsed",
-            key="discount_slider"
-        )
+    # Temporary variables for inputs
+    temp_slider = col1.slider(
+        "Select Discount",
+        min_value=0,
+        max_value=200000,
+        value=st.session_state.selected_discount,
+        step=1000,
+        label_visibility="collapsed"
+    )
 
-    with col2:
-        discount_input = st.number_input(
-            "Manual Entry",
-            min_value=0,
-            max_value=200000,
-            value=st.session_state.selected_discount,
-            step=1000,
-            key="discount_input"
-        )
+    temp_input = col2.number_input(
+        "Manual Entry",
+        min_value=0,
+        max_value=200000,
+        value=st.session_state.selected_discount,
+        step=1000
+    )
 
-    # Sync slider and input box
-    if discount_slider != st.session_state.selected_discount:
-        st.session_state.selected_discount = discount_slider
-    elif discount_input != st.session_state.selected_discount:
-        st.session_state.selected_discount = discount_input
+    # Determine which one was changed and update session state
+    if temp_slider != st.session_state.selected_discount:
+        st.session_state.selected_discount = temp_slider
+    elif temp_input != st.session_state.selected_discount:
+        st.session_state.selected_discount = temp_input
 
     st.success(f"Selected Discount: ₹{st.session_state.selected_discount:,.0f}")
 else:
