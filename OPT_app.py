@@ -5,21 +5,20 @@ from reportlab.lib.utils import ImageReader
 from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
 from PIL import Image
-import tempfile
-import os
+from io import BytesIO
 
 # Set page config
 st.set_page_config(page_title="Orbit PT Pro Pricing Calculator", layout="wide")
 st.title("Orbit PT Pro Quotation Calculator")
 
 # Session state initialization
-if "selected_discount" not in st.session_state:
-    st.session_state.selected_discount = 0
+if "selected_subsidy" not in st.session_state:
+    st.session_state.selected_subsidy = 0
 
 if "form_filled_by" not in st.session_state:
     st.session_state.form_filled_by = ""
 
-# 1. Required Form Inputs
+# Customer Info
 st.subheader("Customer Information")
 customer_name = st.text_input("Customer Name *")
 customer_address = st.text_area("Address *")
@@ -29,15 +28,15 @@ st.subheader("Who is filling this form? *")
 form_filled_by = st.selectbox("Select Role", ["", "Telecaller", "Business Development Officer", "Manager", "Founder"])
 st.session_state.form_filled_by = form_filled_by
 
-# Role-based subsidy caps
-discount_caps = {
+# Subsidy caps per role
+subsidy_caps = {
     "Telecaller": (100000, 130000),
     "Business Development Officer": (110000, 140000),
     "Manager": (120000, 150000),
     "Founder": (155000, 185000),
 }
 
-# 2. Items and pricing list
+# Product List
 items = [
     {"name": "12 HP PT Pro incl Dead Weight", "price": 168000},
     {"name": "Battery Sets", "price": 67200},
@@ -52,7 +51,7 @@ items = [
     {"name": "BuyBack Guarantee", "price": 10000},
 ]
 
-st.write("---")
+st.markdown("---")
 total_price = 0
 selected_items = []
 battery_qty = 0
@@ -65,84 +64,69 @@ for item in items:
     if checked:
         min_qty = 1
         default_qty = 1
-
         if item["name"] == "Fast Chargers":
             min_qty = 2
             default_qty = 2
-        elif item["name"] == "12 HP PT Pro incl Dead Weight":
-            min_qty = 1
-            default_qty = 1
 
-        with col2:
-            qty = st.number_input(
-                f"Qty - {item['name']}",
-                min_value=min_qty,
-                step=1,
-                value=default_qty,
-                key=item["name"]
-            )
-
-        item_total = qty * item["price"]
-        total_price += item_total
+        qty = st.number_input(
+            f"Qty - {item['name']}",
+            min_value=min_qty,
+            step=1,
+            value=default_qty,
+            key=item["name"]
+        )
+        total_price += qty * item["price"]
         selected_items.append({"name": item["name"], "qty": qty})
-
         if item["name"] == "Battery Sets":
             battery_qty = qty
 
-# 3. Subsidy Section
+# Subsidy Section
 st.markdown("---")
 st.write("### 💸 Subsidy Options")
 
-apply_discount = st.radio("Do you want to apply a Subsidy?", ("No", "Yes"))
+apply_subsidy = st.radio("Do you want to apply a Subsidy?", ("No", "Yes"))
 
-if apply_discount == "Yes":
+if apply_subsidy == "Yes":
     st.markdown("#### Select Subsidy Amount")
-
-    # Determine max subsidy allowed
-    single_cap, double_cap = discount_caps[form_filled_by]
-    max_discount = single_cap if battery_qty <= 1 else double_cap
-
+    single_cap, double_cap = subsidy_caps[form_filled_by]
+    max_subsidy = single_cap if battery_qty <= 1 else double_cap
     st.slider(
         "Subsidy Slider",
         min_value=0,
-        max_value=max_discount,
+        max_value=max_subsidy,
         step=1000,
-        key="selected_discount"
+        key="selected_subsidy"
     )
-    st.success(f"Selected Subsidy: ₹{st.session_state.selected_discount:,.0f}")
+    st.success(f"Selected Subsidy: ₹{st.session_state.selected_subsidy:,.0f}")
 else:
-    st.session_state.selected_discount = 0
+    st.session_state.selected_subsidy = 0
 
-selected_discount = st.session_state.selected_discount
-final_price = total_price - selected_discount
+selected_subsidy = st.session_state.selected_subsidy
+final_price = total_price - selected_subsidy
 
-# 4. Bill Summary
+# Summary
 st.markdown("---")
 st.write("### 📟 Bill Summary")
 
 if selected_items:
-    st.markdown("**Quotation Summary**")
-
     st.table({
         "Item Name": [item["name"] for item in selected_items],
         "Quantity": [item["qty"] for item in selected_items]
     })
 
-    st.write(f"**Total Price:** Rs{total_price:,.0f}")
-    st.write(f"**Subsidy Applied:** Rs{selected_discount:,.0f}")
-    st.write(f"**Subsidized Price (All Inclusive):** Rs{final_price:,.0f}")
+    st.write(f"**Total Price:** Rs {total_price:,.0f}")
+    st.write(f"**Subsidy Applied:** Rs {selected_subsidy:,.0f}")
+    st.write(f"**Subsidized Price (All Inclusive):** Rs {final_price:,.0f}")
 
-    # 5. PDF Generation
-    if st.button("📄 Generate and Download Quotation PDF"):
+    # PDF Generation and Download
+    if st.button("📄 Generate Quotation PDF"):
         letterhead_path = "letterpad design_printable (1)_page-0001.jpg"
         img = Image.open(letterhead_path).convert("RGB")
+        pdf_buffer = BytesIO()
+        c = canvas.Canvas(pdf_buffer, pagesize=A4)
 
-        tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-        c = canvas.Canvas(tmp_file.name, pagesize=A4)
-
-        # Header Background
-        bg = ImageReader(img)
-        c.drawImage(bg, 0, 0, width=A4[0], height=A4[1])
+        # Letterhead background
+        c.drawImage(ImageReader(img), 0, 0, width=A4[0], height=A4[1])
 
         y = 660
         c.setFont("Helvetica-Bold", 18)
@@ -184,13 +168,17 @@ if selected_items:
         c.setFont("Helvetica-Bold", 12)
         c.setFillColor(colors.HexColor("#000000"))
         c.drawString(50, summary_y, f"Total Price: Rs {total_price:,.0f}")
-        c.drawString(50, summary_y - 20, f"Subsidy Applied: Rs {selected_discount:,.0f}")
+        c.drawString(50, summary_y - 20, f"Subsidy Applied: Rs {selected_subsidy:,.0f}")
         c.drawString(50, summary_y - 40, f"Subsidized Price (All Inclusive): Rs {final_price:,.0f}")
 
         c.save()
+        pdf_buffer.seek(0)
 
-        with open(tmp_file.name, "rb") as f:
-            st.download_button("Download PDF Quotation", f, file_name="Orbit_Quotation.pdf", mime="application/pdf")
-        os.unlink(tmp_file.name)
+        st.download_button(
+            label="⬇️ Click here to Download PDF Quotation",
+            data=pdf_buffer,
+            file_name="Orbit_Quotation.pdf",
+            mime="application/pdf"
+        )
 else:
     st.info("Please select items to see the bill.")
