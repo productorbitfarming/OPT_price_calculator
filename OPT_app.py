@@ -76,20 +76,20 @@ st.write("### 💸 Discount Options")
 
 import streamlit as st
 
-# --- Initialize session state ---
+import streamlit as st
+
+# --- Initialize state ---
 if "selected_discount" not in st.session_state:
     st.session_state.selected_discount = 0
-if "last_input_source" not in st.session_state:
-    st.session_state.last_input_source = "slider"
 
 st.markdown("### 💸 Discount Options")
 apply_discount = st.radio("Do you want to apply a discount?", ("No", "Yes"))
 
 if apply_discount == "Yes":
     st.markdown("#### Select or Enter Discount Amount (Max ₹2,00,000)")
-    col1, col2 = st.columns([4, 1])
 
-    # Show both inputs with separate keys
+    col1, col2 = st.columns(2)
+
     with col1:
         slider_val = st.slider(
             "Discount Slider",
@@ -110,16 +110,11 @@ if apply_discount == "Yes":
             key="discount_input"
         )
 
-    # Determine which changed
+    # Choose the most recent value
     if slider_val != st.session_state.selected_discount:
         st.session_state.selected_discount = slider_val
-        st.session_state.last_input_source = "slider"
-        st.experimental_rerun()
-
     elif input_val != st.session_state.selected_discount:
         st.session_state.selected_discount = input_val
-        st.session_state.last_input_source = "manual"
-        st.experimental_rerun()
 
     st.success(f"Selected Discount: ₹{st.session_state.selected_discount:,.0f}")
 else:
