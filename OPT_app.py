@@ -91,6 +91,7 @@ if "selected_discount" not in st.session_state:
     st.session_state.selected_discount = 0
 
 if apply_discount == "Yes":
+    manual_discount = 0
     if battery_qty >= 2:
         applicable_discounts = battery_discount_map[2]
     elif battery_qty == 1:
@@ -99,11 +100,20 @@ if apply_discount == "Yes":
         applicable_discounts = []
 
     if applicable_discounts:
+        st.markdown("Select a discount amount or enter manually:")
         cols = st.columns(len(applicable_discounts))
         for i, val in enumerate(applicable_discounts):
             with cols[i]:
                 if st.button(f"₹{val:,.0f}", key=f"discount_{val}"):
                     st.session_state.selected_discount = val
+
+    # Manual discount entry
+    manual_discount = st.number_input("Or enter a custom discount (max ₹2,00,000)", 
+                                      min_value=0, 
+                                      max_value=200000, 
+                                      value=st.session_state.selected_discount,
+                                      step=1000)
+    st.session_state.selected_discount = manual_discount
 else:
     st.session_state.selected_discount = 0
 
