@@ -96,19 +96,19 @@ for item in items:
 
 # 3. Discount Section
 st.markdown("---")
-st.write("### 💸 Discount Options")
+st.write("### 💸 Subsidy Options")
 
-apply_discount = st.radio("Do you want to apply a discount?", ("No", "Yes"))
+apply_discount = st.radio("Do you want to apply a Subsidy?", ("No", "Yes"))
 
 if apply_discount == "Yes":
-    st.markdown("#### Select Discount Amount")
+    st.markdown("#### Select Subsidy Amount")
 
     # Determine max discount allowed
     single_cap, double_cap = discount_caps[form_filled_by]
     max_discount = single_cap if battery_qty <= 1 else double_cap
 
     st.slider(
-        "Discount Slider",
+        "Subsidy Slider",
         min_value=0,
         max_value=max_discount,
         step=1000,
@@ -134,8 +134,8 @@ if selected_items:
     })
 
     st.write(f"**Total Price:** Rs{total_price:,.0f}")
-    st.write(f"**Discount Applied:** Rs{selected_discount:,.0f}")
-    st.write(f"**Discounted Price (All Inclusive):** Rs{final_price:,.0f}")
+    st.write(f"**Subsidy Applied:** Rs{selected_discount:,.0f}")
+    st.write(f"**Subsidized Price (All Inclusive):** Rs{final_price:,.0f}")
 
     # 5. PDF Generation
     if st.button("📄 Generate and Download Quotation PDF"):
@@ -190,8 +190,8 @@ if selected_items:
         c.setFont("Helvetica-Bold", 12)
         c.setFillColor(colors.HexColor("#000000"))
         c.drawString(50, summary_y, f"Total Price: Rs {total_price:,.0f}")
-        c.drawString(50, summary_y - 20, f"Discount Applied: Rs {selected_discount:,.0f}")
-        c.drawString(50, summary_y - 40, f"Discounted Price (All Inclusive): Rs {final_price:,.0f}")
+        c.drawString(50, summary_y - 20, f"Subsidy Applied: Rs {selected_discount:,.0f}")
+        c.drawString(50, summary_y - 40, f"Subsidized Price (All Inclusive): Rs {final_price:,.0f}")
 
         c.save()
 
