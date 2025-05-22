@@ -30,9 +30,9 @@ form_filled_by = st.selectbox("Select Role", ["", "Telecaller", "Business Develo
 st.session_state.form_filled_by = form_filled_by
 
 # Ensure required fields are filled
-if not customer_name or not customer_address or not customer_phone or not form_filled_by:
-    st.warning("Please fill all required fields marked with * to continue.")
-    st.stop()
+#if not customer_name or not customer_address or not customer_phone or not form_filled_by:
+#    st.warning("Please fill all required fields marked with * to continue.")
+#    st.stop()
 
 # Role-based discount caps
 discount_caps = {
