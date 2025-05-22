@@ -74,8 +74,15 @@ for item in items:
 st.markdown("---")
 st.write("### 💸 Discount Options")
 
+# Initialize session state
 if "selected_discount" not in st.session_state:
     st.session_state.selected_discount = 0
+if "manual_discount" not in st.session_state:
+    st.session_state.manual_discount = 0
+if "slider_discount" not in st.session_state:
+    st.session_state.slider_discount = 0
+if "last_updated" not in st.session_state:
+    st.session_state.last_updated = "slider"  # default
 
 apply_discount = st.radio("Do you want to apply a discount?", ("No", "Yes"))
 
@@ -84,29 +91,33 @@ if apply_discount == "Yes":
 
     col1, col2 = st.columns([4, 1])
 
-    # Temporary variables for inputs
-    temp_slider = col1.slider(
-        "Select Discount",
-        min_value=0,
-        max_value=200000,
-        value=st.session_state.selected_discount,
-        step=1000,
-        label_visibility="collapsed"
-    )
+    with col1:
+        slider_val = st.slider(
+            "Select Discount",
+            min_value=0,
+            max_value=200000,
+            value=st.session_state.slider_discount,
+            step=1000,
+            key="slider_discount"
+        )
+        if slider_val != st.session_state.selected_discount:
+            st.session_state.last_updated = "slider"
+            st.session_state.selected_discount = slider_val
+            st.session_state.manual_discount = slider_val
 
-    temp_input = col2.number_input(
-        "Manual Entry",
-        min_value=0,
-        max_value=200000,
-        value=st.session_state.selected_discount,
-        step=1000
-    )
-
-    # Determine which one was changed and update session state
-    if temp_slider != st.session_state.selected_discount:
-        st.session_state.selected_discount = temp_slider
-    elif temp_input != st.session_state.selected_discount:
-        st.session_state.selected_discount = temp_input
+    with col2:
+        input_val = st.number_input(
+            "Manual Entry",
+            min_value=0,
+            max_value=200000,
+            value=st.session_state.manual_discount,
+            step=1000,
+            key="manual_discount"
+        )
+        if input_val != st.session_state.selected_discount:
+            st.session_state.last_updated = "manual"
+            st.session_state.selected_discount = input_val
+            st.session_state.slider_discount = input_val
 
     st.success(f"Selected Discount: ₹{st.session_state.selected_discount:,.0f}")
 else:
