@@ -77,51 +77,44 @@ st.write("### 💸 Discount Options")
 # Initialize session state
 if "selected_discount" not in st.session_state:
     st.session_state.selected_discount = 0
-if "manual_discount" not in st.session_state:
-    st.session_state.manual_discount = 0
-if "slider_discount" not in st.session_state:
-    st.session_state.slider_discount = 0
 if "last_updated" not in st.session_state:
-    st.session_state.last_updated = "slider"  # default
+    st.session_state.last_updated = "slider"  # track last changed widget
 
 apply_discount = st.radio("Do you want to apply a discount?", ("No", "Yes"))
 
 if apply_discount == "Yes":
     st.markdown("#### Select or Enter Discount Amount (Max ₹2,00,000)")
 
-    col1, col2 = st.columns([4, 1])
+    # Temporaries for inputs
+    temp_slider = st.slider(
+        "Discount Slider",
+        0,
+        200000,
+        st.session_state.selected_discount,
+        step=1000,
+        key="temp_slider"
+    )
+    temp_input = st.number_input(
+        "Manual Discount Entry",
+        min_value=0,
+        max_value=200000,
+        value=st.session_state.selected_discount,
+        step=1000,
+        key="temp_input"
+    )
 
-    with col1:
-        slider_val = st.slider(
-            "Select Discount",
-            min_value=0,
-            max_value=200000,
-            value=st.session_state.slider_discount,
-            step=1000,
-            key="slider_discount"
-        )
-        if slider_val != st.session_state.selected_discount:
-            st.session_state.last_updated = "slider"
-            st.session_state.selected_discount = slider_val
-            st.session_state.manual_discount = slider_val
-
-    with col2:
-        input_val = st.number_input(
-            "Manual Entry",
-            min_value=0,
-            max_value=200000,
-            value=st.session_state.manual_discount,
-            step=1000,
-            key="manual_discount"
-        )
-        if input_val != st.session_state.selected_discount:
-            st.session_state.last_updated = "manual"
-            st.session_state.selected_discount = input_val
-            st.session_state.slider_discount = input_val
+    # Sync mechanism
+    if temp_slider != st.session_state.selected_discount:
+        st.session_state.selected_discount = temp_slider
+        st.session_state.last_updated = "slider"
+    elif temp_input != st.session_state.selected_discount:
+        st.session_state.selected_discount = temp_input
+        st.session_state.last_updated = "input"
 
     st.success(f"Selected Discount: ₹{st.session_state.selected_discount:,.0f}")
 else:
     st.session_state.selected_discount = 0
+
 
 selected_discount = st.session_state.selected_discount
 final_price = total_price - selected_discount
