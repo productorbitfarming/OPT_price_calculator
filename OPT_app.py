@@ -74,11 +74,8 @@ for item in items:
 st.markdown("---")
 st.write("### 💸 Discount Options")
 
-import streamlit as st
 
-import streamlit as st
-
-# --- Initialize state ---
+# Initialize session state
 if "selected_discount" not in st.session_state:
     st.session_state.selected_discount = 0
 
@@ -86,37 +83,20 @@ st.markdown("### 💸 Discount Options")
 apply_discount = st.radio("Do you want to apply a discount?", ("No", "Yes"))
 
 if apply_discount == "Yes":
-    st.markdown("#### Select or Enter Discount Amount (Max ₹2,00,000)")
+    st.markdown("#### Select Discount Amount Using Slider (Max ₹2,00,000)")
 
-    col1, col2 = st.columns(2)
+    selected = st.slider(
+        "Discount Slider",
+        min_value=0,
+        max_value=200000,
+        value=st.session_state.selected_discount,
+        step=1000
+    )
+    
+    # Store the selected value
+    st.session_state.selected_discount = selected
 
-    with col1:
-        slider_val = st.slider(
-            "Discount Slider",
-            0,
-            200000,
-            value=st.session_state.selected_discount,
-            step=1000,
-            key="discount_slider"
-        )
-
-    with col2:
-        input_val = st.number_input(
-            "Manual Discount Entry",
-            min_value=0,
-            max_value=200000,
-            value=st.session_state.selected_discount,
-            step=1000,
-            key="discount_input"
-        )
-
-    # Choose the most recent value
-    if slider_val != st.session_state.selected_discount:
-        st.session_state.selected_discount = slider_val
-    elif input_val != st.session_state.selected_discount:
-        st.session_state.selected_discount = input_val
-
-    st.success(f"Selected Discount: ₹{st.session_state.selected_discount:,.0f}")
+    st.success(f"Selected Discount: ₹{selected:,.0f}")
 else:
     st.session_state.selected_discount = 0
 
