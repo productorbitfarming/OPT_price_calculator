@@ -2,10 +2,8 @@ import streamlit as st
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
-from reportlab.platypus import Table, TableStyle, Paragraph, Frame
+from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.enums import TA_LEFT
 from PIL import Image
 import tempfile
 import os
@@ -14,14 +12,37 @@ import os
 st.set_page_config(page_title="Orbit PT Pro Pricing Calculator", layout="wide")
 st.title("Orbit PT Pro Quotation Calculator")
 
-# Customer information input
-st.subheader("Customer Information")
-customer_name = st.text_input("Customer Name")
-customer_address = st.text_area("Address")
-customer_phone = st.text_input("Phone Number")
-customer_email = st.text_input("Email (optional)")
+# Session state initialization
+if "selected_discount" not in st.session_state:
+    st.session_state.selected_discount = 0
 
-# Items and pricing list
+if "form_filled_by" not in st.session_state:
+    st.session_state.form_filled_by = ""
+
+# 1. Required Form Inputs
+st.subheader("Customer Information")
+customer_name = st.text_input("Customer Name *")
+customer_address = st.text_area("Address *")
+customer_phone = st.text_input("Phone Number *")
+
+st.subheader("Who is filling this form? *")
+form_filled_by = st.selectbox("Select Role", ["", "Telecaller", "Business Development Officer", "Manager", "Founder"])
+st.session_state.form_filled_by = form_filled_by
+
+# Ensure required fields are filled
+if not customer_name or not customer_address or not customer_phone or not form_filled_by:
+    st.warning("Please fill all required fields marked with * to continue.")
+    st.stop()
+
+# Role-based discount caps
+discount_caps = {
+    "Telecaller": (100000, 130000),
+    "Business Development Officer": (110000, 140000),
+    "Manager": (120000, 150000),
+    "Founder": (155000, 185000),
+}
+
+# 2. Items and pricing list
 items = [
     {"name": "12 HP PT Pro incl Dead Weight", "price": 168000},
     {"name": "Battery Sets", "price": 67200},
@@ -39,6 +60,7 @@ items = [
 st.write("---")
 total_price = 0
 selected_items = []
+battery_qty = 0
 
 for item in items:
     col1, col2 = st.columns([2, 1])
@@ -67,25 +89,28 @@ for item in items:
 
         item_total = qty * item["price"]
         total_price += item_total
-        selected_items.append({
-            "name": item["name"],
-            "qty": qty
-        })
+        selected_items.append({"name": item["name"], "qty": qty})
 
-# Discount section
+        if item["name"] == "Battery Sets":
+            battery_qty = qty
+
+# 3. Discount Section
 st.markdown("---")
 st.write("### 💸 Discount Options")
-
-if "selected_discount" not in st.session_state:
-    st.session_state.selected_discount = 0
 
 apply_discount = st.radio("Do you want to apply a discount?", ("No", "Yes"))
 
 if apply_discount == "Yes":
+    st.markdown("#### Select Discount Amount")
+
+    # Determine max discount allowed
+    single_cap, double_cap = discount_caps[form_filled_by]
+    max_discount = single_cap if battery_qty <= 1 else double_cap
+
     st.slider(
-        "Discount Slider (Max ₹2,00,000)",
+        "Discount Slider",
         min_value=0,
-        max_value=200000,
+        max_value=max_discount,
         step=1000,
         key="selected_discount"
     )
@@ -96,7 +121,7 @@ else:
 selected_discount = st.session_state.selected_discount
 final_price = total_price - selected_discount
 
-# Bill Summary
+# 4. Bill Summary
 st.markdown("---")
 st.write("### 📟 Bill Summary")
 
@@ -112,19 +137,18 @@ if selected_items:
     st.write(f"**Discount Applied:** Rs{selected_discount:,.0f}")
     st.write(f"**Discounted Price (All Inclusive):** Rs{final_price:,.0f}")
 
-    # PDF Generation
-    if st.button("📄 Create & Download Quotation PDF"):
+    # 5. PDF Generation
+    if st.button("📄 Generate and Download Quotation PDF"):
         letterhead_path = "letterpad design_printable (1)_page-0001.jpg"
         img = Image.open(letterhead_path).convert("RGB")
 
         tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
         c = canvas.Canvas(tmp_file.name, pagesize=A4)
 
-        # Set background image
+        # Header Background
         bg = ImageReader(img)
         c.drawImage(bg, 0, 0, width=A4[0], height=A4[1])
 
-        # Title
         y = 660
         c.setFont("Helvetica-Bold", 18)
         c.setFillColor(colors.HexColor("#1b4332"))
@@ -136,26 +160,13 @@ if selected_items:
         c.setFillColor(colors.black)
         c.drawString(50, y, f"Customer Name: {customer_name}")
         y -= 15
+        c.drawString(50, y, f"Address: {customer_address}")
+        y -= 15
         c.drawString(50, y, f"Phone Number: {customer_phone}")
         y -= 15
-        if customer_email.strip():
-            c.drawString(50, y, f"Email: {customer_email}")
-            y -= 15
-        y -= 5
+        y -= 10
 
-        # Render address with punctuation and line breaks
-        style = getSampleStyleSheet()["Normal"]
-        style.fontName = "Helvetica"
-        style.fontSize = 10
-        style.leading = 12
-        style.alignment = TA_LEFT
-
-        address_frame = Frame(50, y - 60, A4[0] - 100, 50, showBoundary=0)
-        address_para = Paragraph(f"<b>Address:</b> {customer_address.replace(chr(10), '<br/>')}", style)
-        address_frame.addFromList([address_para], c)
-        y -= 90
-
-        # Table (items)
+        # Table
         data = [["Item Name", "Quantity"]]
         for item in selected_items:
             data.append([item["name"], str(item["qty"])])
@@ -185,7 +196,7 @@ if selected_items:
         c.save()
 
         with open(tmp_file.name, "rb") as f:
-            st.download_button("⬇️ Download Orbit Quotation PDF", f, file_name="Orbit_Quotation.pdf", mime="application/pdf")
+            st.download_button("Download PDF Quotation", f, file_name="Orbit_Quotation.pdf", mime="application/pdf")
         os.unlink(tmp_file.name)
 else:
     st.info("Please select items to see the bill.")
