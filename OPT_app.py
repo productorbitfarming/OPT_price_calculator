@@ -204,15 +204,16 @@ elif option == "Proforma Receipt":
     phone = numeric_input("Phone Number (10 digits)", max_length=10, key="phone")
     email = st.text_input("Email (optional)", max_chars=50, key="email")
     amount_received = st.text_input("Amount Received (₹)", max_chars=10, key="amount_received")
-   st.markdown("**Payment Mode:**")
-   payment_mode = st.selectbox("", ["Cashfree", "Cash", "Other"], key="payment_mode")
-    
+
+    st.markdown("**Payment Mode:**")
+    payment_mode = st.selectbox("", ["Cashfree", "Cash", "Other"], key="payment_mode")
+
     # Handle custom payment mode if "Other" is selected
-   if payment_mode == "Other":
-       custom_payment_mode = st.text_input("Enter Other Payment Mode", key="custom_payment_mode")
-       final_payment_mode = custom_payment_mode.strip() if custom_payment_mode else "Other"
-   else:
-       final_payment_mode = payment_mode
+    if payment_mode == "Other":
+        custom_payment_mode = st.text_input("Enter Other Payment Mode", key="custom_payment_mode")
+        final_payment_mode = custom_payment_mode.strip() if custom_payment_mode else "Other"
+    else:
+        final_payment_mode = payment_mode
 
     reference_id = st.text_input("Reference ID (optional)", max_chars=20, key="reference_id")
     payment_date = st.date_input("Date of Payment", datetime.today(), key="payment_date").strftime("%d/%m/%Y")
