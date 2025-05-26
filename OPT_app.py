@@ -219,21 +219,42 @@ elif option == "Proforma Receipt":
     balance_due = st.text_input("Balance Due (₹)", max_chars=10, key="balance_due")
     tentative_delivery = st.date_input("Tentative Delivery Date", datetime.today(), key="tentative_delivery").strftime("%d/%m/%Y")
 
-    # Replace item selection with quantity inputs (default 0)
     st.markdown("---")
-    st.subheader("Enter Quantities for Items (Enter 0 if none)")
+    st.subheader("Enter Quantities for Items (Minimum quantities enforced)")
 
-    quantity_pt_pro = st.number_input("12 HP PT Pro incl Dead Weight", min_value=1, step=1, value=0, key="qty_pt_pro")
-    quantity_battery = st.number_input("Battery Sets", min_value=1, step=1, value=0, key="qty_battery")
-    quantity_charger = st.number_input("Fast Chargers", min_value=2, step=1, value=0, key="qty_charger")
-    quantity_blade_weeding = st.number_input("1 Set of Sugarcane Blades(Weeding) including Extended Shaft", min_value=0, step=1, value=0, key="qty_blade_weeding")
-    quantity_blade_earthing = st.number_input("1 Set of Sugarcane Blades(Earthing-up) including Extended Shaft", min_value=0, step=1, value=0, key="qty_blade_earthing")
-    quantity_tyres = st.number_input("1 Set of Tyres (5x10)", min_value=0, step=1, value=0, key="qty_tyres")
-    quantity_toolkit = st.number_input("Toolkit: Spanner, Gloves, Gum Boots", min_value=0, step=1, value=0, key="qty_toolkit")
-    quantity_ginger = st.number_input("Ginger Kit", min_value=0, step=1, value=0, key="qty_ginger")
-    quantity_seat = st.number_input("Seat", min_value=0, step=1, value=0, key="qty_seat")
-    quantity_jack = st.number_input("Jack", min_value=0, step=1, value=0, key="qty_jack")
-    quantity_buyback_guarantee = st.number_input("BuyBack Guarantee", min_value=0, step=1, value=0, key="qty_buyback_guarantee")
+    quantity_pt_pro = st.number_input(
+        "12 HP PT Pro incl Dead Weight", min_value=1, step=1, value=1, key="qty_pt_pro"
+    )
+    quantity_battery = st.number_input(
+        "Battery Sets", min_value=1, step=1, value=1, key="qty_battery"
+    )
+    quantity_charger = st.number_input(
+        "Fast Chargers", min_value=2, step=1, value=2, key="qty_charger"
+    )
+    quantity_blade_weeding = st.number_input(
+        "1 Set of Sugarcane Blades(Weeding) including Extended Shaft", min_value=0, step=1, value=0, key="qty_blade_weeding"
+    )
+    quantity_blade_earthing = st.number_input(
+        "1 Set of Sugarcane Blades(Earthing-up) including Extended Shaft", min_value=0, step=1, value=0, key="qty_blade_earthing"
+    )
+    quantity_tyres = st.number_input(
+        "1 Set of Tyres (5x10)", min_value=0, step=1, value=0, key="qty_tyres"
+    )
+    quantity_toolkit = st.number_input(
+        "Toolkit: Spanner, Gloves, Gum Boots", min_value=0, step=1, value=0, key="qty_toolkit"
+    )
+    quantity_ginger = st.number_input(
+        "Ginger Kit", min_value=0, step=1, value=0, key="qty_ginger"
+    )
+    quantity_seat = st.number_input(
+        "Seat", min_value=0, step=1, value=0, key="qty_seat"
+    )
+    quantity_jack = st.number_input(
+        "Jack", min_value=0, step=1, value=0, key="qty_jack"
+    )
+    quantity_buyback_guarantee = st.number_input(
+        "BuyBack Guarantee", min_value=0, step=1, value=0, key="qty_buyback_guarantee"
+    )
 
     if st.button("Generate Receipt DOCX"):
         if not receipt_no:
@@ -257,7 +278,7 @@ elif option == "Proforma Receipt":
                 "balance_due": RichText(balance_due, bold=True),
                 "tentative_delivery": RichText(tentative_delivery, bold=True),
 
-                # Quantities
+                # Quantities passed as placeholders
                 "quantity_pt_pro": quantity_pt_pro,
                 "quantity_battery": quantity_battery,
                 "quantity_charger": quantity_charger,
