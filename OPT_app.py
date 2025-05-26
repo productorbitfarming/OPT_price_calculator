@@ -187,7 +187,6 @@ if option == "Quotation Summary":
 elif option == "Proforma Receipt":
     from docxtpl import DocxTemplate, RichText
     from datetime import datetime
-    from collections import defaultdict
 
     TEMPLATE_PATH = "Sales Advance Receipt Template.docx"
 
@@ -220,48 +219,28 @@ elif option == "Proforma Receipt":
     balance_due = st.text_input("Balance Due (₹)", max_chars=10, key="balance_due")
     tentative_delivery = st.date_input("Tentative Delivery Date", datetime.today(), key="tentative_delivery").strftime("%d/%m/%Y")
 
-    # Item selection begins AFTER tentative delivery
+    # Replace item selection with quantity inputs (default 0)
     st.markdown("---")
-    st.subheader("Select Items (No Price — For Annexure Table)")
+    st.subheader("Enter Quantities for Items (Enter 0 if none)")
 
-    items = [
-        "12 HP PT Pro incl Dead Weight",
-        "Battery Sets",
-        "Fast Chargers",
-        "1 Set of Sugarcane Blades(Weeding) including Extended Shaft",
-        "1 Set of Sugarcane Blades(Earthing-up) including Extended Shaft",
-        "1 Set of Tyres (5x10)",
-        "Toolkit: Spanner, Gloves, Gum Boots",
-        "Ginger Kit",
-        "Seat",
-        "Jack",
-        "BuyBack Guarantee"
-    ]
-
-    selected_items = []
-    quantities = defaultdict(lambda: 0)  # safe fallback
-
-    for item in items:
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            checked = st.checkbox(item, key=f"check_{item}")
-        if checked:
-            qty = st.number_input(f"Qty - {item}", min_value=1, step=1, value=1, key=f"qty_{item}")
-            selected_items.append([item, str(qty)])
-            quantities[item] = int(qty)
+    quantity_pt_pro = st.number_input("12 HP PT Pro incl Dead Weight", min_value=0, step=1, value=0, key="qty_pt_pro")
+    quantity_battery = st.number_input("Battery Sets", min_value=0, step=1, value=0, key="qty_battery")
+    quantity_charger = st.number_input("Fast Chargers", min_value=0, step=1, value=0, key="qty_charger")
+    quantity_blade_weeding = st.number_input("1 Set of Sugarcane Blades(Weeding) including Extended Shaft", min_value=0, step=1, value=0, key="qty_blade_weeding")
+    quantity_blade_earthing = st.number_input("1 Set of Sugarcane Blades(Earthing-up) including Extended Shaft", min_value=0, step=1, value=0, key="qty_blade_earthing")
+    quantity_tyres = st.number_input("1 Set of Tyres (5x10)", min_value=0, step=1, value=0, key="qty_tyres")
+    quantity_toolkit = st.number_input("Toolkit: Spanner, Gloves, Gum Boots", min_value=0, step=1, value=0, key="qty_toolkit")
+    quantity_ginger = st.number_input("Ginger Kit", min_value=0, step=1, value=0, key="qty_ginger")
+    quantity_seat = st.number_input("Seat", min_value=0, step=1, value=0, key="qty_seat")
+    quantity_jack = st.number_input("Jack", min_value=0, step=1, value=0, key="qty_jack")
+    quantity_buyback_guarantee = st.number_input("BuyBack Guarantee", min_value=0, step=1, value=0, key="qty_buyback_guarantee")
 
     if st.button("Generate Receipt DOCX"):
         if not receipt_no:
             st.error("Receipt Number is required and must be numeric up to 4 digits.")
         elif len(phone) != 10:
             st.error("Phone Number must be exactly 10 digits.")
-        elif not selected_items:
-            st.error("Please select at least one item for the Annexure.")
         else:
-            # Debug prints
-            st.write("✅ Debug - Quantities Dictionary Keys:")
-            st.json(dict(quantities))  # show in streamlit
-
             doc = DocxTemplate(TEMPLATE_PATH)
 
             context = {
@@ -277,7 +256,19 @@ elif option == "Proforma Receipt":
                 "payment_date": RichText(payment_date, bold=True),
                 "balance_due": RichText(balance_due, bold=True),
                 "tentative_delivery": RichText(tentative_delivery, bold=True),
-                "quantities": quantities
+
+                # Quantities
+                "quantity_pt_pro": quantity_pt_pro,
+                "quantity_battery": quantity_battery,
+                "quantity_charger": quantity_charger,
+                "quantity_blade_weeding": quantity_blade_weeding,
+                "quantity_blade_earthing": quantity_blade_earthing,
+                "quantity_tyres": quantity_tyres,
+                "quantity_toolkit": quantity_toolkit,
+                "quantity_ginger": quantity_ginger,
+                "quantity_seat": quantity_seat,
+                "quantity_jack": quantity_jack,
+                "quantity_buyback_guarantee": quantity_buyback_guarantee,
             }
 
             try:
