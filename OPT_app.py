@@ -197,7 +197,6 @@ elif option == "Proforma Receipt":
         val = ''.join(filter(str.isdigit, val))[:max_length]
         return val
 
-    # Input Fields
     receipt_no = numeric_input("Receipt Number (max 4 digits)", max_length=4, key="receipt_no")
     date = st.date_input("Date", datetime.today(), key="date").strftime("%d/%m/%Y")
     customer_name = st.text_input("Customer Name", max_chars=50, key="customer_name")
@@ -208,16 +207,21 @@ elif option == "Proforma Receipt":
 
     st.markdown("**Payment Mode:**")
     payment_mode = st.selectbox("", ["Cashfree", "Cash", "Other"], key="payment_mode")
-    final_payment_mode = st.text_input("Enter Other Payment Mode", key="custom_payment_mode") if payment_mode == "Other" else payment_mode
+
+    if payment_mode == "Other":
+        custom_payment_mode = st.text_input("Enter Other Payment Mode", key="custom_payment_mode")
+        final_payment_mode = custom_payment_mode.strip() if custom_payment_mode else "Other"
+    else:
+        final_payment_mode = payment_mode
 
     reference_id = st.text_input("Reference ID (optional)", max_chars=20, key="reference_id")
     payment_date = st.date_input("Date of Payment", datetime.today(), key="payment_date").strftime("%d/%m/%Y")
     balance_due = st.text_input("Balance Due (₹)", max_chars=10, key="balance_due")
     tentative_delivery = st.date_input("Tentative Delivery Date", datetime.today(), key="tentative_delivery").strftime("%d/%m/%Y")
 
-    # Annexure: Item Selection
+    # Item selection begins AFTER tentative delivery
     st.markdown("---")
-    st.subheader("Select Items for Annexure (No Prices)")
+    st.subheader("Select Items (No Price — For Annexure Table)")
 
     items = [
         "12 HP PT Pro incl Dead Weight",
@@ -239,19 +243,23 @@ elif option == "Proforma Receipt":
         with col1:
             checked = st.checkbox(item, key=f"check_{item}")
         if checked:
-            qty = st.number_input(f"Qty - {item}", min_value=1, value=1, step=1, key=f"qty_{item}")
+            qty = st.number_input(f"Qty - {item}", min_value=1, step=1, value=1, key=f"qty_{item}")
             selected_items.append([item, str(qty)])
 
-    # Generate Receipt
     if st.button("Generate Receipt DOCX"):
         if not receipt_no:
-            st.error("Receipt Number is required and must be numeric.")
+            st.error("Receipt Number is required and must be numeric up to 4 digits.")
         elif len(phone) != 10:
             st.error("Phone Number must be exactly 10 digits.")
         elif not selected_items:
             st.error("Please select at least one item for the Annexure.")
         else:
             doc = DocxTemplate(TEMPLATE_PATH)
+
+            # Create dictionary for quantities to match template placeholders
+            quantities = {item: 0 for item in items}  # default all to 0
+            for name, qty in selected_items:
+                quantities[name] = int(qty)
 
             context = {
                 "receipt_no": RichText(receipt_no, bold=True),
@@ -266,7 +274,7 @@ elif option == "Proforma Receipt":
                 "payment_date": RichText(payment_date, bold=True),
                 "balance_due": RichText(balance_due, bold=True),
                 "tentative_delivery": RichText(tentative_delivery, bold=True),
-                "items_table": selected_items  # Used in {% for row in items_table %} loop
+                "quantities": quantities
             }
 
             output_filename = f"Sales_Advance_Receipt_{receipt_no}.docx"
