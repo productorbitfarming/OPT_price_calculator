@@ -223,9 +223,9 @@ elif option == "Proforma Receipt":
     st.markdown("---")
     st.subheader("Enter Quantities for Items (Enter 0 if none)")
 
-    quantity_pt_pro = st.number_input("12 HP PT Pro incl Dead Weight", min_value=0, step=1, value=0, key="qty_pt_pro")
-    quantity_battery = st.number_input("Battery Sets", min_value=0, step=1, value=0, key="qty_battery")
-    quantity_charger = st.number_input("Fast Chargers", min_value=0, step=1, value=0, key="qty_charger")
+    quantity_pt_pro = st.number_input("12 HP PT Pro incl Dead Weight", min_value=1, step=1, value=0, key="qty_pt_pro")
+    quantity_battery = st.number_input("Battery Sets", min_value=1, step=1, value=0, key="qty_battery")
+    quantity_charger = st.number_input("Fast Chargers", min_value=2, step=1, value=0, key="qty_charger")
     quantity_blade_weeding = st.number_input("1 Set of Sugarcane Blades(Weeding) including Extended Shaft", min_value=0, step=1, value=0, key="qty_blade_weeding")
     quantity_blade_earthing = st.number_input("1 Set of Sugarcane Blades(Earthing-up) including Extended Shaft", min_value=0, step=1, value=0, key="qty_blade_earthing")
     quantity_tyres = st.number_input("1 Set of Tyres (5x10)", min_value=0, step=1, value=0, key="qty_tyres")
