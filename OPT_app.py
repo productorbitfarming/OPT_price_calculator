@@ -238,6 +238,8 @@ elif option == "Proforma Receipt":
     ]
 
     selected_items = []
+    quantities = {item: 0 for item in items}  # Initialize with all zero
+
     for item in items:
         col1, col2 = st.columns([2, 1])
         with col1:
@@ -245,6 +247,7 @@ elif option == "Proforma Receipt":
         if checked:
             qty = st.number_input(f"Qty - {item}", min_value=1, step=1, value=1, key=f"qty_{item}")
             selected_items.append([item, str(qty)])
+            quantities[item] = int(qty)  # Update quantity if selected
 
     if st.button("Generate Receipt DOCX"):
         if not receipt_no:
@@ -255,11 +258,6 @@ elif option == "Proforma Receipt":
             st.error("Please select at least one item for the Annexure.")
         else:
             doc = DocxTemplate(TEMPLATE_PATH)
-
-            # Create dictionary for quantities to match template placeholders
-            quantities = {item: 0 for item in items}  # default all to 0
-            for name, qty in selected_items:
-                quantities[name] = int(qty)
 
             context = {
                 "receipt_no": RichText(receipt_no, bold=True),
