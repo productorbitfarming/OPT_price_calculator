@@ -185,8 +185,10 @@ if option == "Quotation Summary":
 # Option 2: Proforma Receipt
 # ----------------------------------------------------------------------
 elif option == "Proforma Receipt":
-    from docxtpl import DocxTemplate, RichText
+    from docxtpl import DocxTemplate, RichText, InlineImage
     from datetime import datetime
+    from docx.shared import Inches
+    import os
 
     TEMPLATE_PATH = "Sales Advance Receipt Template.docx"
 
@@ -207,8 +209,6 @@ elif option == "Proforma Receipt":
 
     st.markdown("**Payment Mode:**")
     payment_mode = st.selectbox("", ["Cashfree", "Cash", "Other"], key="payment_mode")
-
-    # Handle custom payment mode if "Other" is selected
     if payment_mode == "Other":
         custom_payment_mode = st.text_input("Enter Other Payment Mode", key="custom_payment_mode")
         final_payment_mode = custom_payment_mode.strip() if custom_payment_mode else "Other"
@@ -220,6 +220,37 @@ elif option == "Proforma Receipt":
     balance_due = st.text_input("Balance Due (₹)", max_chars=10, key="balance_due")
     tentative_delivery = st.date_input("Tentative Delivery Date", datetime.today(), key="tentative_delivery").strftime("%d/%m/%Y")
 
+    st.markdown("---")
+    st.subheader("Select Items (Without Prices)")
+    items = [
+        {"name": "12 HP PT Pro incl Dead Weight"},
+        {"name": "Battery Sets"},
+        {"name": "Fast Chargers"},
+        {"name": "1 Set of Sugarcane Blades(Weeding) including Extended Shaft"},
+        {"name": "1 Set of Sugarcane Blades(Earthing-up) including Extended Shaft"},
+        {"name": "1 Set of Tyres (5x10)"},
+        {"name": "Toolkit: Spanner, Gloves, Gum Boots"},
+        {"name": "Ginger Kit"},
+        {"name": "Seat"},
+        {"name": "Jack"},
+        {"name": "BuyBack Guarantee"},
+    ]
+
+    selected_items = []
+    for item in items:
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            checked = st.checkbox(item["name"])
+        if checked:
+            qty = st.number_input(
+                f"Qty - {item['name']}",
+                min_value=1,
+                step=1,
+                value=1,
+                key="qty_" + item["name"]
+            )
+            selected_items.append([item["name"], str(qty)])
+
     if st.button("Generate Receipt DOCX"):
         if not receipt_no:
             st.error("Receipt Number is required and must be numeric up to 4 digits.")
@@ -227,6 +258,11 @@ elif option == "Proforma Receipt":
             st.error("Phone Number must be exactly 10 digits.")
         else:
             doc = DocxTemplate(TEMPLATE_PATH)
+
+            # Format table for docxtpl
+            table_data = [["Item Name", "Quantity"]]
+            table_data.extend(selected_items)
+
             context = {
                 "receipt_no": RichText(receipt_no, bold=True),
                 "date": RichText(date, bold=True),
@@ -240,6 +276,7 @@ elif option == "Proforma Receipt":
                 "payment_date": RichText(payment_date, bold=True),
                 "balance_due": RichText(balance_due, bold=True),
                 "tentative_delivery": RichText(tentative_delivery, bold=True),
+                "items_table": table_data
             }
 
             output_filename = f"Sales_Advance_Receipt_{receipt_no}.docx"
