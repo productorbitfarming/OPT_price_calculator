@@ -187,6 +187,7 @@ if option == "Quotation Summary":
 elif option == "Proforma Receipt":
     from docxtpl import DocxTemplate, RichText
     from datetime import datetime
+    from collections import defaultdict
 
     TEMPLATE_PATH = "Sales Advance Receipt Template.docx"
 
@@ -238,7 +239,7 @@ elif option == "Proforma Receipt":
     ]
 
     selected_items = []
-    quantities = {item: 0 for item in items}  # Initialize with all zero
+    quantities = defaultdict(lambda: 0)  # safe fallback
 
     for item in items:
         col1, col2 = st.columns([2, 1])
@@ -247,7 +248,7 @@ elif option == "Proforma Receipt":
         if checked:
             qty = st.number_input(f"Qty - {item}", min_value=1, step=1, value=1, key=f"qty_{item}")
             selected_items.append([item, str(qty)])
-            quantities[item] = int(qty)  # Update quantity if selected
+            quantities[item] = int(qty)
 
     if st.button("Generate Receipt DOCX"):
         if not receipt_no:
@@ -257,6 +258,10 @@ elif option == "Proforma Receipt":
         elif not selected_items:
             st.error("Please select at least one item for the Annexure.")
         else:
+            # Debug prints
+            st.write("✅ Debug - Quantities Dictionary Keys:")
+            st.json(dict(quantities))  # show in streamlit
+
             doc = DocxTemplate(TEMPLATE_PATH)
 
             context = {
@@ -275,15 +280,19 @@ elif option == "Proforma Receipt":
                 "quantities": quantities
             }
 
-            output_filename = f"Sales_Advance_Receipt_{receipt_no}.docx"
-            doc.render(context)
-            doc.save(output_filename)
-            st.success(f"Receipt generated: {output_filename}")
+            try:
+                doc.render(context)
+                output_filename = f"Sales_Advance_Receipt_{receipt_no}.docx"
+                doc.save(output_filename)
+                st.success(f"Receipt generated: {output_filename}")
 
-            with open(output_filename, "rb") as file:
-                st.download_button(
-                    label="Download Receipt DOCX",
-                    data=file,
-                    file_name=output_filename,
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )
+                with open(output_filename, "rb") as file:
+                    st.download_button(
+                        label="Download Receipt DOCX",
+                        data=file,
+                        file_name=output_filename,
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
+            except Exception as e:
+                st.error("❌ Error rendering document.")
+                st.exception(e)
