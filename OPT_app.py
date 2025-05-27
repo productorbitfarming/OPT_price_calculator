@@ -121,7 +121,7 @@ if option == "Quotation Summary":
         st.write(f"**Subsidized Price (All Inclusive):** Rs {final_price:,.0f}")
 
         if st.button("📄 Generate Quotation PDF"):
-            letterhead_path = "letterpad design_printable (1)_page-0001.jpg"
+            letterhead_path = "letterpad design-01.jpg"
             img = Image.open(letterhead_path).convert("RGB")
             pdf_buffer = BytesIO()
             c = canvas.Canvas(pdf_buffer, pagesize=A4)
