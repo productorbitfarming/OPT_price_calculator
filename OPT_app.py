@@ -35,23 +35,23 @@ if option == "Quotation Summary":
     st.session_state.form_filled_by = form_filled_by
 
     subsidy_caps = {
-        "Telecaller": (100000, 130000),
-        "Business Development Officer": (110000, 140000),
-        "Manager": (120000, 150000),
-        "Co-Founder": (155000, 185000),
+        "Telecaller": (55000, 75000),
+        "Business Development Officer": (60000, 80000),
+        "Manager": (65000, 85000),
+        "Co-Founder": (100000, 120000),
     }
 
     items = [
-        {"name": "12 HP PT Pro incl Dead Weight", "price": 168000},
-        {"name": "Battery Sets", "price": 67200},
-        {"name": "Fast Chargers", "price": 6720},
-        {"name": "1 Set of Sugarcane Blades(Weeding) including Extended Shaft", "price": 5040},
-        {"name": "1 Set of Sugarcane Blades(Earthing-up) including Extended Shaft", "price": 5040},
-        {"name": "1 Set of Tyres (5x10)", "price": 8400},
-        {"name": "Toolkit: Spanner, Gloves, Gum Boots", "price": 1680},
-        {"name": "Ginger Kit", "price": 11200},
-        {"name": "Seat", "price": 7840},
-        {"name": "Jack", "price": 1680},
+        {"name": "12 HP PT Pro incl Dead Weight", "price": 112000},
+        {"name": "Battery Sets", "price": 56000},
+        {"name": "Fast Chargers", "price": 6500},
+        {"name": "1 Set of Sugarcane Blades(Weeding) including Extended Shaft", "price": 4400},
+        {"name": "1 Set of Sugarcane Blades(Earthing-up) including Extended Shaft", "price": 4400},
+        {"name": "1 Set of Tyres (5x10)", "price": 8000},
+        {"name": "Toolkit: Spanner, Gloves, Gum Boots", "price": 1200},
+        {"name": "Ginger Kit", "price": 10000},
+        {"name": "Seat", "price": 6500},
+        {"name": "Jack", "price": 1100},
         {"name": "BuyBack Guarantee", "price": 10000},
     ]
 
@@ -197,7 +197,7 @@ elif option == "Proforma Receipt":
         val = ''.join(filter(str.isdigit, val))[:max_length]
         return val
 
-    receipt_no = numeric_input("Receipt Number (max 4 digits)", max_length=4, key="receipt_no")
+    receipt_no = numeric_input("Receipt Number (max 5 digits)", max_length=5, key="receipt_no")
     date = st.date_input("Date", datetime.today(), key="date").strftime("%d/%m/%Y")
     customer_name = st.text_input("Customer Name", max_chars=50, key="customer_name")
     address = st.text_input("Address", max_chars=200, key="address")
