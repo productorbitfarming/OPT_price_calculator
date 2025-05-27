@@ -294,7 +294,7 @@ elif option == "Proforma Receipt":
 
             try:
                 doc.render(context)
-                output_filename = f"Sales_Advance_Receipt_{receipt_no}.docx"
+                output_filename = f"Orbit Agritech Proforma Receipt {receipt_no}.docx"
                 doc.save(output_filename)
                 st.success(f"Receipt generated: {output_filename}")
 
