@@ -31,14 +31,14 @@ if option == "Quotation Summary":
     customer_phone = st.text_input("Phone Number *")
 
     st.subheader("Who is filling this form? *")
-    form_filled_by = st.selectbox("Select Role", ["", "Telecaller", "Business Development Officer", "Manager", "Founder"])
+    form_filled_by = st.selectbox("Select Role", ["", "Telecaller", "Business Development Officer", "Manager", "Co-Founder"])
     st.session_state.form_filled_by = form_filled_by
 
     subsidy_caps = {
         "Telecaller": (100000, 130000),
         "Business Development Officer": (110000, 140000),
         "Manager": (120000, 150000),
-        "Founder": (155000, 185000),
+        "Co-Founder": (155000, 185000),
     }
 
     items = [
